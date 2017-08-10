@@ -61,7 +61,7 @@ class EmissionCalculatorLib:
                     else:
                         self.distances.append(self.get_distance_3d(self.jsonData[i], self.jsonData[i + 1]) / 1000)
 
-                    slopes.append(int(round(self.get_slope(self.jsonData[i], self.jsonData[i + 1]))))
+                    slopes.append(self.get_slope(self.jsonData[i], self.jsonData[i + 1]))
             # else:
             #     break
                 # temp_values.append(i)
@@ -70,7 +70,9 @@ class EmissionCalculatorLib:
 
         for i in range(len(slopes)):
             # if (i < 10):
-                emission.slope = self.get_fake_slope(slopes[i])
+
+                # emission.slope = self.get_fake_slope(slopes[i])
+                emission.slope = slopes[i]
                 temp_values.append(emission.get_emission_for_pollutant("NOx"))
             # else:
             #     break

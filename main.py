@@ -17,18 +17,17 @@ class EmissionCalculatorLib:
         self.atr_times = []
         self.paths = []
 
-
         #start calculation
         self.get_json_from_url()
         self.calculate_distance()
 
     def get_json_from_url(self):
-        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
-        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
+        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urllib.urlopen(url)
         data = json.loads(response.read())
-        # fix here data["routes"]["features"] - if more roads are available
+
         for i in range(len(data["routes"]["features"])):
             self.atr_distances.append(data["routes"]["features"][i]['attributes']["Total_Meters"])
             self.atr_times.append(data["routes"]["features"][i]['attributes']["Total_Minutes"])
@@ -72,6 +71,10 @@ class EmissionCalculatorLib:
 
     def calculate_distance(self):
         all_nox_values = []
+        all_co_values = []
+        all_hc_values = []
+        all_pm_values = []
+        all_fc_values = []
         all_slopes = []
         all_distances = []
 
@@ -91,21 +94,65 @@ class EmissionCalculatorLib:
 
         for j in range(len(all_slopes)):
             nox_values = []
+            co_values = []
+            hc_values = []
+            pm_values = []
+            fc_values = []
             emission = EmissionsJsonReader()
             emission.velocity = self.get_velocity(j)
             for i in range(len(all_slopes[j])):
                 emission.slope = all_slopes[j][i]
                 nox_values.append(emission.get_emission_for_pollutant("NOx"))
+                co_values.append(emission.get_emission_for_pollutant("CO"))
+                hc_values.append(emission.get_emission_for_pollutant("HC"))
+                pm_values.append(emission.get_emission_for_pollutant("PM"))
+                fc_values.append(emission.get_emission_for_pollutant("FC"))
             all_nox_values.append(nox_values)
+            all_co_values.append(co_values)
+            all_hc_values.append(hc_values)
+            all_pm_values.append(pm_values)
+            all_fc_values.append(fc_values)
 
-        max_y_emissions = []
+        max_y_nox_emissions = []
+        max_y_co_emissions = []
+        max_y_hc_emissions = []
+        max_y_pm_emissions = []
+        max_y_fc_emissions = []
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(511)
+        ax2 = fig.add_subplot(512)
+        ax3 = fig.add_subplot(513)
+        ax4 = fig.add_subplot(514)
+        ax5 = fig.add_subplot(515)
+        # ax2 = ax1.twinx()
 
         for i in range(len(all_nox_values)):
-            plt.plot(all_distances[i], all_nox_values[i])
-            max_y_emissions.append(max(all_nox_values[i]))
+            ax1.plot(all_distances[i], all_nox_values[i])
+            ax2.plot(all_distances[i], all_co_values[i])
+            ax3.plot(all_distances[i], all_hc_values[i])
+            ax4.plot(all_distances[i], all_pm_values[i])
+            ax5.plot(all_distances[i], all_fc_values[i])
+            max_y_nox_emissions.append(max(all_nox_values[i]))
+            max_y_co_emissions.append(max(all_co_values[i]))
+            max_y_hc_emissions.append(max(all_hc_values[i]))
+            max_y_pm_emissions.append(max(all_pm_values[i]))
+            max_y_fc_emissions.append(max(all_fc_values[i]))
         # plt.plot(temp_values)
 
-        plt.axis([0, max(self.atr_distances)/1000, 0, max(max_y_emissions)+1])
+        # plt.axis([0, max(self.atr_distances)/1000, 0, max(max_y_emissions)+1])
+        ax1.set_ylim(0, max(max_y_nox_emissions)+1)
+        ax2.set_ylim(0, max(max_y_co_emissions)+1)
+        ax3.set_ylim(0, max(max_y_hc_emissions)+1)
+        ax4.set_ylim(0, max(max_y_pm_emissions)+1)
+        ax5.set_ylim(0, max(max_y_fc_emissions)+1)
+
+        ax1.set_title('NOx')
+        ax2.set_title('CO')
+        ax3.set_title("HC")
+        ax4.set_title("PM")
+        ax5.set_title("FC")
+
         plt.show()
 
 if __name__ == "__main__":

@@ -8,8 +8,15 @@ class EmissionCalculatorLib:
     def __init__(self):
         #init values
         self.jsonData = {}
-        self.distances = []
+        # self.distances = []
         self.emissions = []
+
+        #temp values
+        self.atributes = {}
+        self.atr_distances = []
+        self.atr_times = []
+        self.paths = []
+
 
         #start calculation
         self.get_json_from_url()
@@ -17,10 +24,18 @@ class EmissionCalculatorLib:
 
     def get_json_from_url(self):
         url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        # url with 3 roads from Oslo to Molde
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urllib.urlopen(url)
         data = json.loads(response.read())
+        # fix here data["routes"]["features"] - if more roads are available
+        for i in range(len(data["routes"]["features"])):
+            self.atr_distances.append(data["routes"]["features"][i]['attributes']["Total_Meters"])
+            self.atr_times.append(data["routes"]["features"][i]['attributes']["Total_Minutes"])
+            self.paths.append(data["routes"]["features"][i]["geometry"]["paths"][0])
+
         self.jsonData = data["routes"]["features"][0]["geometry"]["paths"][0]
-        print self.jsonData
+        # print self.jsonData
 
     @staticmethod
     def get_distance_2d(point1, point2):
@@ -36,7 +51,8 @@ class EmissionCalculatorLib:
         distance = self.get_distance_3d(point1, point2)
         slope = 0.0
         if distance != 0:
-            slope = math.degrees(math.asin((point2[2]- point1[2])/distance))
+            slope = math.degrees(math.asin((float(point2[2])- float(point1[2]))/distance))
+        # print slope, point2, point1, distance
         return slope
 
     @staticmethod
@@ -49,37 +65,47 @@ class EmissionCalculatorLib:
             slope_dict = {0: 0, 1: 0, 2: 2, 3: 2, 4: 4, 5: 4, 6: 6, -1: 0, -2: -2, -3: -2, -4: -4, -5: -4, -6: -6}
             return slope_dict[slope]
 
+    def get_velocity(self, index):
+        dist = self.atr_distances[index]
+        time = 60 * self.atr_times[index]
+        return (dist/time) * 3.6
+
     def calculate_distance(self):
-        temp_values = []
-        slopes = []
-        for i in range(len(self.jsonData)):
-            # if (i < 10):
-                if (i + 1) < len(self.jsonData):
-                    if len(self.distances) > 0:
-                        dist = self.distances[-1] + self.get_distance_3d(self.jsonData[i], self.jsonData[i + 1]) / 1000
-                        self.distances.append(dist)
+        all_nox_values = []
+        all_slopes = []
+        all_distances = []
+
+        for j in range(len(self.paths)):
+            slopes = []
+            distances = []
+            for i in range(len(self.paths[j])):
+                if (i + 1) < len(self.paths[j]):
+                    if len(distances) > 0:
+                        dist = distances[-1] + self.get_distance_3d(self.jsonData[i], self.jsonData[i + 1]) / 1000
+                        distances.append(dist)
                     else:
-                        self.distances.append(self.get_distance_3d(self.jsonData[i], self.jsonData[i + 1]) / 1000)
+                        distances.append(self.get_distance_3d(self.jsonData[i], self.jsonData[i + 1]) / 1000)
+                    slopes.append(self.get_slope(self.paths[j][i], self.paths[j][i + 1]))
+            all_slopes.append(slopes)
+            all_distances.append(distances)
 
-                    slopes.append(self.get_slope(self.jsonData[i], self.jsonData[i + 1]))
-            # else:
-            #     break
-                # temp_values.append(i)
-        emission = EmissionsJsonReader()
-        emission.velocity = 58
+        for j in range(len(all_slopes)):
+            nox_values = []
+            emission = EmissionsJsonReader()
+            emission.velocity = self.get_velocity(j)
+            for i in range(len(all_slopes[j])):
+                emission.slope = all_slopes[j][i]
+                nox_values.append(emission.get_emission_for_pollutant("NOx"))
+            all_nox_values.append(nox_values)
 
-        for i in range(len(slopes)):
-            # if (i < 10):
+        max_y_emissions = []
 
-                # emission.slope = self.get_fake_slope(slopes[i])
-                emission.slope = slopes[i]
-                temp_values.append(emission.get_emission_for_pollutant("NOx"))
-            # else:
-            #     break
-        # print temp_values
+        for i in range(len(all_nox_values)):
+            plt.plot(all_distances[i], all_nox_values[i])
+            max_y_emissions.append(max(all_nox_values[i]))
+        # plt.plot(temp_values)
 
-        plt.plot(self.distances, temp_values)
-        plt.axis([0, self.distances[-1]+1, 0, max(temp_values)+1])
+        plt.axis([0, max(self.atr_distances)/1000, 0, max(max_y_emissions)+1])
         plt.show()
 
 if __name__ == "__main__":

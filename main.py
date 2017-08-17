@@ -25,7 +25,6 @@ class EmissionCalculatorLib:
         self.__atr_distances = []
         self.__atr_times = []
 
-
     def __init_emission_dict(self):
         if self.calculate_nox:
             self.__emissions_for_pollutant["NOx"] = []
@@ -130,7 +129,7 @@ class EmissionCalculatorLib:
                 num_plots = 100 * len(self.__emissions_for_pollutant) + 10 + pollutant_counter
                 ax = fig.add_subplot(num_plots)
                 ax.set_title(self.__pollutants[j])
-                ax.set_ylim(0, self.__get_max_value_from_dict(self.__pollutants[j]))
+                ax.set_ylim(0, self.__get_max_value_from_dict(self.__pollutants[j]) + 1)
                 figs.append(ax)
 
         for i in range(len(self.paths)):

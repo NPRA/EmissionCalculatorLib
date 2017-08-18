@@ -1,3 +1,4 @@
+import os
 import json
 from EquationGenerator import EquationGenerator
 from Interpolate import Interpolate
@@ -20,7 +21,8 @@ class EmissionsJsonReader:
         self.__filter_input_to_tec_name()
 
     def __load_input_data(self):
-        f = open("inputData.txt", "r")
+        input_data = os.path.join(os.path.dirname(__file__), 'inputData.txt')
+        f = open(input_data, "r")
         data = f.read().split(";")
         self.type = data[0]
         self.ssc_name = data[1]
@@ -31,7 +33,8 @@ class EmissionsJsonReader:
         # self.velocity = int(data[6])
 
     def __filter_input_to_tec_name(self):
-        with open("convertedData.json") as data_file:
+        converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
+        with open(converted_json) as data_file:
             data = json.load(data_file)
 
         type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))

@@ -34,15 +34,15 @@ class EmissionsJsonReader:
         with open("convertedData.json") as data_file:
             data = json.load(data_file)
 
-        type = filter(lambda type: type["Name"] == self.type, data["Type"])
-        ssc_name = filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"])
-        subsegment = filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"])
-        self.filtred_tec_name = filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"])
+        type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
+        ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
+        subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
+        self.filtred_tec_name = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
 
     def __get_emission_for_pollutant(self, pollutant_value, slope_value):
-        slope = filter(lambda slope: slope["id"] == str(slope_value), self.filtred_tec_name[0]["Slope"])
-        load = filter(lambda load: load["id"] == self.load, slope[0]["Load"])
-        pollutant_data = filter(lambda load: load["id"] == pollutant_value, load[0]["Pollutant"])
+        slope = list(filter(lambda slope: slope["id"] == str(slope_value), self.filtred_tec_name[0]["Slope"]))
+        load = list(filter(lambda load: load["id"] == self.load, slope[0]["Load"]))
+        pollutant_data = list(filter(lambda load: load["id"] == pollutant_value, load[0]["Pollutant"]))
         emission = EquationGenerator(pollutant_data[0], self.velocity).get_result()
         return  emission
 

@@ -1,5 +1,9 @@
 import math
-import urllib, json
+import json
+try:
+    from urllib.request import urlopen  # Python 3
+except ImportError:
+    from urllib import urlopen  # Python 2
 from EmissionJSONReader import EmissionsJsonReader
 import matplotlib.pyplot as plt
 
@@ -45,11 +49,11 @@ class EmissionCalculatorLib:
                 self.__emissions_for_pollutant[pollutant_key].append([])
 
     def get_json_from_url(self):
-        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops="+self.coordinates+"&weight=50&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
-        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
-        response = urllib.urlopen(url)
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
+        response = urlopen(url)
         data = json.loads(response.read())
 
         for i in range(len(data["routes"]["features"])):

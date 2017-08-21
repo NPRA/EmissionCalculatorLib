@@ -19,7 +19,9 @@ class EmissionCalculatorLib:
         self.calculate_pm = True
         self.calculate_fc = True
         self.paths = []
-
+        self.emissionJson = EmissionsJsonReader()
+        # self.vehicle_load = "50"
+        # self.vehicle_load = self.emissionJson.load
         # private values
         self.__pollutants = ["NOx", "CO", "HC", "PM", "FC"]
         self.__emissions_for_pollutant = {}
@@ -49,8 +51,9 @@ class EmissionCalculatorLib:
                 self.__emissions_for_pollutant[pollutant_key].append([])
 
     def get_json_from_url(self):
-        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops="+self.coordinates+"&weight=50&geometryformat=isoz"
+        load = self.emissionJson.load
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urlopen(url)
@@ -109,15 +112,13 @@ class EmissionCalculatorLib:
             all_slopes.append(slopes)
             all_distances.append(distances)
 
-        emission = EmissionsJsonReader()
-
         for j in range(len(all_slopes)):
-            emission.velocity = self.__get_velocity(j)
+            self.emissionJson.velocity = self.__get_velocity(j)
             for i in range(len(all_slopes[j])):
-                emission.slope = all_slopes[j][i]
+                self.emissionJson.slope = all_slopes[j][i]
                 for k in range(len(self.__pollutants)):
                     if self.__pollutants[k] in self.__emissions_for_pollutant:
-                        calc_emission = emission.get_emission_for_pollutant(self.__pollutants[k])
+                        calc_emission = self.emissionJson.get_emission_for_pollutant(self.__pollutants[k])
                         if len(self.__emissions_for_pollutant[self.__pollutants[k]][j]) > 0 and self.cumulative:
                             result_emission = self.__emissions_for_pollutant[self.__pollutants[k]][j][-1] + calc_emission
                         else:

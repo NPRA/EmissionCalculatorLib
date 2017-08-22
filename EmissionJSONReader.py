@@ -100,15 +100,15 @@ class EmissionsJsonReader:
         self.load = data[5]
         # self.velocity = int(data[6])
 
-    # def __filter_input_to_tec_name(self):
-    #     converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
-    #     with open(converted_json) as data_file:
-    #         data = json.load(data_file)
-    #
-    #     type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
-    #     ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
-    #     subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
-    #     self.filtred_tec_name = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
+    def __filter_input_to_tec_name(self):
+        converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
+        with open(converted_json) as data_file:
+            data = json.load(data_file)
+
+        type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
+        ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
+        subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
+        self.result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
 
     def __get_emission_for_pollutant(self, pollutant_value, slope_value):
         slope = list(filter(lambda slope: slope["id"] == str(slope_value), self.result_tec[0]["Slope"]))

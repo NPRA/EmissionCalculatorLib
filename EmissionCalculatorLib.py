@@ -28,8 +28,9 @@ class EmissionCalculatorLib:
 
         # temp values
         self.__atributes = {}
-        self.__atr_distances = []
-        self.__atr_times = []
+        self.atr_distances = []
+        self.atr_times = []
+        self.statistics = {}
 
     def __init_emission_dict(self):
         if self.calculate_nox:
@@ -51,6 +52,8 @@ class EmissionCalculatorLib:
                 self.__emissions_for_pollutant[pollutant_key].append([])
 
     def get_json_from_url(self):
+        self.paths = []
+        self.statistics = {}
         load = self.emissionJson.load
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
         url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
@@ -60,8 +63,8 @@ class EmissionCalculatorLib:
         data = json.loads(response.read())
 
         for i in range(len(data["routes"]["features"])):
-            self.__atr_distances.append(data["routes"]["features"][i]['attributes']["Total_Meters"])
-            self.__atr_times.append(data["routes"]["features"][i]['attributes']["Total_Minutes"])
+            self.atr_distances.append(data["routes"]["features"][i]['attributes']["Total_Meters"])
+            self.atr_times.append(data["routes"]["features"][i]['attributes']["Total_Minutes"])
             self.paths.append(data["routes"]["features"][i]["geometry"]["paths"][0])
 
     @staticmethod
@@ -82,8 +85,8 @@ class EmissionCalculatorLib:
         return slope
 
     def __get_velocity(self, index):
-        dist = self.__atr_distances[index]
-        time = 60 * self.__atr_times[index]
+        dist = self.atr_distances[index]
+        time = 60 * self.atr_times[index]
         return (dist/time) * 3.6
 
     def __get_max_value_from_dict(self, key):
@@ -139,11 +142,22 @@ class EmissionCalculatorLib:
 
         for i in range(len(self.paths)):
             pollutant_counter = 0
+            self.statistics[i] = {}
             for j in range(len(self.__pollutants)):
                 if self.__pollutants[j] in self.__emissions_for_pollutant:
                     ax = figs[pollutant_counter]
                     ax.plot(all_distances[i], self.__emissions_for_pollutant[self.__pollutants[j]][i])
                     pollutant_counter += 1
+                    if self.cumulative:
+                        self.statistics[i][self.__pollutants[j]] = max(self.__emissions_for_pollutant[self.__pollutants[j]][i])
+                    else:
+                        self.statistics[i][self.__pollutants[j]] = sum(self.__emissions_for_pollutant[self.__pollutants[j]][i])
+
+        ax = figs[-1]
+        labels = ["Route " + str(i+1) for i in range(len(self.paths))]
+        pos = (len(figs)/10.0) * (-1)
+        ax.legend(labels, loc=(0, pos), ncol = len(self.paths))
+        # print self.statistics
 
         plt.show()
 

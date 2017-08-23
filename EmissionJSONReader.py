@@ -17,16 +17,12 @@ class EmissionsJsonReader:
         self.data = {}
 
         # private values
-        self.result_type = []
-        self.result_ssc = []
-        self.result_subsegment = []
-        self.result_tec = []
+        self.__result_type = []
+        self.__result_ssc = []
+        self.__result_subsegment = []
+        self.__result_tec = []
 
-        # Result from filter
-        # self.filtred_tec_name = []
-
-        # self.__load_input_data()
-        # self.__filter_input_to_tec_name()
+        # self.read_data_from_input_file("inputData.txt")
 
     @staticmethod
     def __read_json_file():
@@ -40,22 +36,22 @@ class EmissionsJsonReader:
 
     def set_type(self, value):
         self.type = value
-        self.result_type = list(filter(lambda type: type["Name"] == self.type, self.data["Type"]))
+        self.__result_type = list(filter(lambda type: type["Name"] == self.type, self.data["Type"]))
 
     def set_ssc_name(self, value):
         self.ssc_name = value
-        if len(self.result_type) > 0:
-            self.result_ssc = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, self.result_type[0]["SSC_NAME"]))
+        if len(self.__result_type) > 0:
+            self.__result_ssc = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, self.__result_type[0]["SSC_NAME"]))
 
     def set_subsegment(self, value):
         self.subsegment = value
-        if len(self.result_ssc):
-            self.result_subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, self.result_ssc[0]["Subsegment"]))
+        if len(self.__result_ssc):
+            self.__result_subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, self.__result_ssc[0]["Subsegment"]))
 
     def set_tec_name(self, value):
         self.tec_name = value
-        if len(self.result_subsegment):
-            self.result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, self.result_subsegment[0]["TEC_NAME"]))
+        if len(self.__result_subsegment):
+            self.__result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, self.__result_subsegment[0]["TEC_NAME"]))
 
     def set_load(self, value):
         self.load = value
@@ -69,27 +65,27 @@ class EmissionsJsonReader:
 
     def get_ssc_names(self):
         ssc_names = []
-        if len(self.result_type) > 0:
-            for i in range(len(self.result_type[0]['SSC_NAME'])):
-                ssc_names.append(self.result_type[0]['SSC_NAME'][i]['Name'])
+        if len(self.__result_type) > 0:
+            for i in range(len(self.__result_type[0]['SSC_NAME'])):
+                ssc_names.append(self.__result_type[0]['SSC_NAME'][i]['Name'])
         return ssc_names
 
     def get_subsegment(self):
         subsegments = []
-        if len(self.result_ssc) > 0:
-            for i in range(len(self.result_ssc[0]['Subsegment'])):
-                subsegments.append(self.result_ssc[0]['Subsegment'][i]['Name'])
+        if len(self.__result_ssc) > 0:
+            for i in range(len(self.__result_ssc[0]['Subsegment'])):
+                subsegments.append(self.__result_ssc[0]['Subsegment'][i]['Name'])
         return subsegments
 
     def get_tec_names(self):
         tec_names = []
-        if len(self.result_subsegment) > 0:
-            for i in range(len(self.result_subsegment[0]['TEC_NAME'])):
-                tec_names.append(self.result_subsegment[0]['TEC_NAME'][i]['Name'])
+        if len(self.__result_subsegment) > 0:
+            for i in range(len(self.__result_subsegment[0]['TEC_NAME'])):
+                tec_names.append(self.__result_subsegment[0]['TEC_NAME'][i]['Name'])
         return tec_names
 
-    def __load_input_data(self):
-        input_data = os.path.join(os.path.dirname(__file__), 'inputData.txt')
+    def read_data_from_input_file(self, input_file):
+        input_data = os.path.join(os.path.dirname(__file__), input_file)
         f = open(input_data, "r")
         data = f.read().split(";")
         self.type = data[0]
@@ -99,8 +95,9 @@ class EmissionsJsonReader:
         # self.slope = data[4]
         self.load = data[5]
         # self.velocity = int(data[6])
+        self.__init_values_from_input_file()
 
-    def __filter_input_to_tec_name(self):
+    def __init_values_from_input_file(self):
         converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
         with open(converted_json) as data_file:
             data = json.load(data_file)
@@ -108,10 +105,10 @@ class EmissionsJsonReader:
         type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
         ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
         subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
-        self.result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
+        self.__result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
 
     def __get_emission_for_pollutant(self, pollutant_value, slope_value):
-        slope = list(filter(lambda slope: slope["id"] == str(slope_value), self.result_tec[0]["Slope"]))
+        slope = list(filter(lambda slope: slope["id"] == str(slope_value), self.__result_tec[0]["Slope"]))
         load = list(filter(lambda load: load["id"] == self.load, slope[0]["Load"]))
         pollutant_data = list(filter(lambda load: load["id"] == pollutant_value, load[0]["Pollutant"]))
         emission = EquationGenerator(pollutant_data[0], self.velocity).get_result()

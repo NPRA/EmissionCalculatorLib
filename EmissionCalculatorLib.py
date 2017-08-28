@@ -30,6 +30,9 @@ class EmissionCalculatorLib:
         # private values
         self.__pollutants = ["NOx", "CO", "HC", "PM", "FC"]
 
+        self.all_roads_slopes = []
+        self.all_roads_distances = []
+
         # self.__emissions_for_pollutant = {}
 
         # temp values
@@ -37,6 +40,8 @@ class EmissionCalculatorLib:
         # self.atr_distances = []
         # self.atr_times = []
         # self.statistics = {}
+        self.__json_data = {}
+        self.__emissions_for_pollutant = {}
 
     def __init_emission_dict(self):
         self.__emissions_for_pollutant = {}
@@ -66,21 +71,28 @@ class EmissionCalculatorLib:
         self.paths = []
 
     def get_json_from_url(self):
-        self.__init_temp_values()
+        # self.__init_temp_values()
         load = self.emissionJson.load
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
         url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urlopen(url)
-        data = json.loads(response.read())
-        if "messages" not in data:
-            for i in range(len(data["routes"]["features"])):
-                self.atr_distances.append(data["routes"]["features"][i]['attributes']["Total_Meters"])
-                self.atr_times.append(data["routes"]["features"][i]['attributes']["Total_Minutes"])
-                self.paths.append(data["routes"]["features"][i]["geometry"]["paths"][0])
+        self.__json_data = json.loads(response.read())
+        self.set_data(self.__json_data)
+
+    def get_json_data(self):
+        return self.__json_data
+
+    def set_data(self, data_json):
+        self.__init_temp_values()
+        if "messages" not in data_json:
+            for i in range(len(data_json["routes"]["features"])):
+                self.atr_distances.append(data_json["routes"]["features"][i]['attributes']["Total_Meters"])
+                self.atr_times.append(data_json["routes"]["features"][i]['attributes']["Total_Minutes"])
+                self.paths.append(data_json["routes"]["features"][i]["geometry"]["paths"][0])
         else:
-            print data["messages"][0]['description']
+            print data_json["messages"][0]['description']
 
     @staticmethod
     def __get_distance_2d(point1, point2):
@@ -111,8 +123,8 @@ class EmissionCalculatorLib:
         return max(values)
 
     def calculate_emissions(self):
-        all_roads_slopes = []
-        all_roads_distances = []
+        self.all_roads_slopes = []
+        self.all_roads_distances = []
 
         self.__init_emission_dict()
 
@@ -127,13 +139,13 @@ class EmissionCalculatorLib:
                     else:
                         distances.append(self.__get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
                     slopes.append(self.__get_slope(self.paths[j][i], self.paths[j][i + 1]))
-            all_roads_slopes.append(slopes)
-            all_roads_distances.append(distances)
+            self.all_roads_slopes.append(slopes)
+            self.all_roads_distances.append(distances)
 
-        for j in range(len(all_roads_slopes)):
+        for j in range(len(self.all_roads_slopes)):
             self.emissionJson.velocity = self.__get_velocity(j)
-            for i in range(len(all_roads_slopes[j])):
-                self.emissionJson.slope = all_roads_slopes[j][i]
+            for i in range(len(self.all_roads_slopes[j])):
+                self.emissionJson.slope = self.all_roads_slopes[j][i]
                 for k in range(len(self.__pollutants)):
                     if self.__pollutants[k] in self.__emissions_for_pollutant:
                         calc_emission = self.emissionJson.get_emission_for_pollutant(self.__pollutants[k])
@@ -143,13 +155,20 @@ class EmissionCalculatorLib:
                             result_emission = calc_emission
                         self.__emissions_for_pollutant[self.__pollutants[k]][j].append(result_emission)
 
+    def get_emissions_for_pollutant(self):
+        return self.__emissions_for_pollutant
+
+    def set_emissions_for_pollutant(self, data):
+        self.__emissions_for_pollutant = data
+
+    def show_emissions(self):
         if self.show_in_graph:
             fig = plt.figure()
             figs = []
             pollutant_counter = 0
             for j in range(len(self.__pollutants)):
                 if self.__pollutants[j] in self.__emissions_for_pollutant:
-                    pollutant_counter +=1
+                    pollutant_counter += 1
                     num_plots = 100 * len(self.__emissions_for_pollutant) + 10 + pollutant_counter
                     ax = fig.add_subplot(num_plots)
                     ax.set_title(self.__pollutants[j])
@@ -162,7 +181,7 @@ class EmissionCalculatorLib:
                 for j in range(len(self.__pollutants)):
                     if self.__pollutants[j] in self.__emissions_for_pollutant:
                         ax = figs[pollutant_counter]
-                        ax.plot(all_roads_distances[i], self.__emissions_for_pollutant[self.__pollutants[j]][i])
+                        ax.plot(self.all_roads_distances[i], self.__emissions_for_pollutant[self.__pollutants[j]][i])
                         pollutant_counter += 1
                         if self.cumulative:
                             self.statistics[i][self.__pollutants[j]] = max(self.__emissions_for_pollutant[self.__pollutants[j]][i])
@@ -197,14 +216,14 @@ if __name__ == "__main__":
     parser.add_option("--length", dest="length", default=12, help='Vehicle length', metavar="Value")
     parser.add_option("--height", dest="height", default=4.5, help='Vehicle height', metavar="Value")
     parser.add_option("--load", dest="load", default=0, help="Vehicle load")
-    parser.add_option("--input", dest="inputFile", default="", help='Set type vehicle motor, this is necessary for'
+    parser.add_option("--input", dest="inputFile", default="inputData.txt", help='Set type vehicle motor, this is necessary for'
                                                                      ' calculate emission', metavar="String")
     parser.add_option("--nox", dest="nox", default=True, help='Get NOx emissions', metavar="Bool")
     parser.add_option("--co", dest="co", default=True, help='Get CO emissions', metavar="Bool")
     parser.add_option("--hc", dest="hc", default=True, help='Get HC emissions', metavar="Bool")
     parser.add_option("--pm", dest="pm", default=True, help='Get PM emissions', metavar="Bool")
     parser.add_option("--fc", dest="fc", default=True, help='Get FC emissions', metavar="Bool")
-    parser.add_option("--cumulative", dest="cumulative", default=True, help='Cumulative curve in graph', metavar="Bool")
+    parser.add_option("--cumulative", dest="cumulative", default=False, help='Cumulative curve in graph', metavar="Bool")
     parser.add_option("--graph", dest="graph", default=True, help='Show results in graph', metavar="Bool")
 
     (options, args) = parser.parse_args()
@@ -218,6 +237,7 @@ if __name__ == "__main__":
     emission_calculator.load = str(options.load)
 
     emission_calculator.get_json_from_url()
+    # emission_calculator.set_data(data)
 
     def str2bool(v):
         return v.lower() in ("yes", "true", "t", "1")
@@ -243,3 +263,4 @@ if __name__ == "__main__":
         if options.inputFile != "":
             emission_calculator.emissionJson.read_data_from_input_file(options.inputFile)
             emission_calculator.calculate_emissions()
+            emission_calculator.show_emissions()

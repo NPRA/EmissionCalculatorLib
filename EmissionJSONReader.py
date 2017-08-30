@@ -2,7 +2,7 @@ import os
 import json
 from EquationGenerator import EquationGenerator
 from Interpolate import Interpolate
-
+from Extrapolate import Extrapolate
 
 class EmissionsJsonReader:
     def __init__(self):
@@ -129,7 +129,7 @@ class EmissionsJsonReader:
             if self.slope > 0.0:
                 for i in range(len(positive_slopes)):
                     slopes_for_polutant.append(self.__get_emission_for_pollutant(pollutant, positive_slopes[i]))
-                i = Interpolate(positive_slopes, slopes_for_polutant)
+                i = Extrapolate(positive_slopes, slopes_for_polutant)
                 return i[self.slope]
             else:
                 for i in range(len(negative_slopes)):

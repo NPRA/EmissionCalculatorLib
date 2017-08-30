@@ -161,6 +161,16 @@ class EmissionCalculatorLib:
     def set_emissions_for_pollutant(self, data):
         self.__emissions_for_pollutant = data
 
+    # def show_slopes(self):
+    #
+    #     fig = plt.figure()
+    #     ax1 = fig.add_subplot(111)
+    #     for i in range(len(self.paths)):
+    #
+    #         ax1.plot(self.all_roads_distances[i], self.all_roads_slopes[i])
+    #         # ax1.set_ylim(min(self.b) - 1, max(self.b) + 1)
+    #     plt.show()
+
     def show_emissions(self):
         if self.show_in_graph:
             fig = plt.figure()
@@ -264,3 +274,4 @@ if __name__ == "__main__":
             emission_calculator.emissionJson.read_data_from_input_file(options.inputFile)
             emission_calculator.calculate_emissions()
             emission_calculator.show_emissions()
+            # emission_calculator.show_slopes()

@@ -1,5 +1,6 @@
 import math
 
+
 class EquationGenerator:
     def __init__(self, data, velocity):
 
@@ -18,9 +19,7 @@ class EquationGenerator:
         self.function_id = int(self.data["Function_ID"])
         self.velocity = velocity
 
-        self.calculate(self.function_id)
-
-    def calculate(self, model):
+    def _calculate(self):
 
         # 1: ((a * (b ^ x)) * (x ^ c))
         # 2: ((a * (x ^ b)) + (c * (x ^ d)))
@@ -58,7 +57,7 @@ class EquationGenerator:
                         -1: lambda a,b,c,d,e,f,vel: 0.0
                         }
 
-        self.result = equation_dict[model](self.a, self.b, self.c, self.d, self.e, self.f, self.velocity)
+        return equation_dict[self.function_id](self.a, self.b, self.c, self.d, self.e, self.f, self.velocity)
 
-    def get_result(self):
-        return self.result
+    def __call__(self):
+        return self._calculate()

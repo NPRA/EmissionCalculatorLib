@@ -1,1 +1,1 @@
-HDV;Gasoline >3.5 t;RT petrol;Conventional;0;50;70
+HDV;Gasoline >3.5 t;RT petrol;Conventional

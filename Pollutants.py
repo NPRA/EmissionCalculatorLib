@@ -15,3 +15,6 @@ class Pollutants:
 
     def __call__(self):
         return sorted(self._pollutants)
+
+    def __len__(self):
+        return len(self._pollutants)

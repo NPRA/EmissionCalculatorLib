@@ -38,6 +38,8 @@ class EmissionCalculatorLib:
         self.pollutants.add_pollutant("HC", self.calculate_hc)
         self.pollutants.add_pollutant("CO", self.calculate_co)
         self.pollutants.add_pollutant("NOx", self.calculate_nox)
+        if (len(self.pollutants)) == 0:
+            self.show_in_graph = False
 
     def _reinit_temp_values(self):
         self.atr_distances = []
@@ -48,8 +50,8 @@ class EmissionCalculatorLib:
 
     def get_json_from_url(self):
         load = self.emissionJson.load
-        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urlopen(url)
@@ -220,3 +222,4 @@ if __name__ == "__main__":
             emission_calculator.emissionJson.read_data_from_input_file(options.inputFile)
             emission_calculator.calculate_emissions()
             emission_calculator.show_emissions()
+            print emission_calculator.get_summary()

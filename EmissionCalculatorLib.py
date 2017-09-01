@@ -26,7 +26,7 @@ class EmissionCalculatorLib:
         self.length = "12"
         self.height = "4.5"
 
-        self.distances_path = []
+        self.roads_distances = []
 
         # temp values
         self._json_data = {}
@@ -42,14 +42,14 @@ class EmissionCalculatorLib:
     def _reinit_temp_values(self):
         self.atr_distances = []
         self.atr_times = []
-        self.statistics = {}
+        self.emission_summary = {}
         # re-init paths
         self.paths = []
 
     def get_json_from_url(self):
         load = self.emissionJson.load
-        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
+        url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+        # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
         # url with 3 roads from Oslo to Molde
         # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
         response = urlopen(url)
@@ -92,18 +92,18 @@ class EmissionCalculatorLib:
         return (dist/time) * 3.6
 
     def calculate_emissions(self):
-        self.distances_path = []
+        self.roads_distances = []
         self._init_emission_dict()
 
         for j in range(len(self.paths)):
             distances = []
+            self.emissionJson.velocity = self._get_velocity(j)
             for i in range(len(self.paths[j])):
                 if (i + 1) < len(self.paths[j]):
                     if len(distances) > 0:
                         distances.append(distances[-1] + self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
                     else:
                         distances.append(self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
-                    self.emissionJson.velocity = self._get_velocity(j)
                     self.emissionJson.slope = self._get_slope(self.paths[j][i], self.paths[j][i + 1])
                     for pollutant in self.pollutants:
                         calc_emission = self.emissionJson.get_emission_for_pollutant(pollutant)
@@ -113,7 +113,7 @@ class EmissionCalculatorLib:
                         else:
                             result_emission = calc_emission
                         self.pollutants[pollutant][j].append(result_emission)
-            self.distances_path.append(distances)
+            self.roads_distances.append(distances)
 
     def show_emissions(self):
         if self.show_in_graph:
@@ -130,17 +130,17 @@ class EmissionCalculatorLib:
 
             for i in range(len(self.paths)):
                 pollutant_counter = 0
-                self.statistics[i+1] = {}
+                self.emission_summary[i + 1] = {}
                 for pollutant in self.pollutants:
                     ax = figs[pollutant_counter]
-                    ax.plot(self.distances_path[i], self.pollutants[pollutant][i])
+                    ax.plot(self.roads_distances[i], self.pollutants[pollutant][i])
                     pollutant_counter += 1
                     if self.cumulative:
-                        self.statistics[i+1][pollutant] = max(self.pollutants[pollutant][i])
+                        self.emission_summary[i + 1][pollutant] = max(self.pollutants[pollutant][i])
                     else:
-                        self.statistics[i+1][pollutant] = sum(self.pollutants[pollutant][i])
+                        self.emission_summary[i + 1][pollutant] = sum(self.pollutants[pollutant][i])
 
-            print (self.statistics)
+            # print (self.emission_summary)
             ax = figs[-1]
             labels = ["Route " + str(i+1) for i in range(len(self.paths))]
             pos = (len(figs)/10.0) * (-1)
@@ -148,13 +148,16 @@ class EmissionCalculatorLib:
             plt.show()
         else:
             for i in range(len(self.paths)):
-                self.statistics[i+1] = {}
+                self.emission_summary[i + 1] = {}
                 for pollutant in self.pollutants:
                     if self.cumulative:
-                        self.statistics[i+1][pollutant] = max(self.pollutants[pollutant][i])
+                        self.emission_summary[i + 1][pollutant] = max(self.pollutants[pollutant][i])
                     else:
-                        self.statistics[i+1][pollutant] = sum(self.pollutants[pollutant][i])
-            print (self.statistics)
+                        self.emission_summary[i + 1][pollutant] = sum(self.pollutants[pollutant][i])
+            # print (self.emission_summary)
+
+    def get_summary(self):
+        return self.emission_summary
 
 if __name__ == "__main__":
     VERSION = "1.0"

@@ -27,6 +27,7 @@ class EmissionCalculatorLib:
         self.height = "4.5"
 
         self.roads_distances = []
+        self.emission_summary = {}
 
         # temp values
         self._json_data = {}
@@ -44,7 +45,6 @@ class EmissionCalculatorLib:
     def _reinit_temp_values(self):
         self.atr_distances = []
         self.atr_times = []
-        self.emission_summary = {}
         # re-init paths
         self.paths = []
 
@@ -118,6 +118,7 @@ class EmissionCalculatorLib:
             self.roads_distances.append(distances)
 
     def show_emissions(self):
+        self.emission_summary = {}
         if self.show_in_graph:
             fig = plt.figure()
             figs = []

@@ -113,7 +113,7 @@ class EmissionsJsonReader:
     def _calculate_emission_for_pollutant_by_slope(self, pollutant_value, slope_value):
         slope = list(filter(lambda slope: slope["id"] == str(slope_value), self._result_tec[0]["Slope"]))
         load = list(filter(lambda load: load["id"] == self.load, slope[0]["Load"]))
-        pollutant_data = list(filter(lambda load: load["id"] == pollutant_value, load[0]["Pollutant"]))
+        pollutant_data = list(filter(lambda pollutant: pollutant["id"] == pollutant_value, load[0]["Pollutant"]))
         emission = EquationGenerator(pollutant_data[0], self.velocity)
         return emission()
 

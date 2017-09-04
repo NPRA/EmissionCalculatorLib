@@ -28,9 +28,12 @@ class EmissionsJsonReader:
     @staticmethod
     def _read_json_file():
         converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
-        with open(converted_json) as data_file:
-            data = json.load(data_file)
-        return data
+        if os.path.isfile(converted_json):
+            with open(converted_json) as data_file:
+                data = json.load(data_file)
+            return data
+        else:
+            sys.exit("Json file doesn't exist.")
 
     def set_type(self, value):
         self.type = value
@@ -84,31 +87,37 @@ class EmissionsJsonReader:
 
     def read_data_from_input_file(self, input_file):
         input_data = os.path.join(os.path.dirname(__file__), input_file)
-        f = open(input_data, "r")
-        data = f.read().split(";")
-        if len(data) != 4:
-            sys.exit("Wrong input parameters!")
-        self.type = data[0]
-        self.ssc_name = data[1]
-        self.subsegment = data[2]
-        self.tec_name = data[3]
+        if os.path.isfile(input_data):
+            f = open(input_data, "r")
+            data = f.read().split(";")
+            if len(data) != 4:
+                sys.exit("Wrong input parameters!")
+            self.type = data[0]
+            self.ssc_name = data[1]
+            self.subsegment = data[2]
+            self.tec_name = data[3]
 
-        self._init_values_from_input_file()
+            self._init_values_from_input_file()
+        else:
+            sys.exit("Invalid input file")
 
     def _init_values_from_input_file(self):
         converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
-        with open(converted_json) as data_file:
-            data = json.load(data_file)
+        if os.path.isfile(converted_json):
+            with open(converted_json) as data_file:
+                data = json.load(data_file)
 
-        type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
-        if len(type) > 0:
-            ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
-            if len(ssc_name) > 0:
-                subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
-                if len(subsegment) > 0 :
-                    self._result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
-        if not len(self._result_tec) > 0:
-            sys.exit("Wrong input parameters!")
+            type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
+            if len(type) > 0:
+                ssc_name = list(filter(lambda sscName: sscName["Name"] == self.ssc_name, type[0]["SSC_NAME"]))
+                if len(ssc_name) > 0:
+                    subsegment = list(filter(lambda subseg: subseg["Name"] == self.subsegment, ssc_name[0]["Subsegment"]))
+                    if len(subsegment) > 0 :
+                        self._result_tec = list(filter(lambda tecName: tecName["Name"] == self.tec_name, subsegment[0]["TEC_NAME"]))
+            if not len(self._result_tec) > 0:
+                sys.exit("Wrong input parameters!")
+        else:
+            sys.exit("Json file doesn't exist.")
 
     def _calculate_emission_for_pollutant_by_slope(self, pollutant_value, slope_value):
         slope = list(filter(lambda slope: slope["id"] == str(slope_value), self._result_tec[0]["Slope"]))

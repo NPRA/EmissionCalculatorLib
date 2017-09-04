@@ -24,7 +24,7 @@ class EmissionCalculatorLib:
         self.emissionJson = EmissionsJsonReader()
         self.show_in_graph = True
         self.length = "12"
-        self.height = "4.5"
+        self.height = "4.4"
 
         self.roads_distances = []
         self.emission_summary = {}
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     parser.add_option("--start", dest="startCoord", default=[0,0], help='Set start coordinates', metavar="Array")
     parser.add_option("--end", dest="endCoord", default=[0,0], help='Set end coordinates', metavar="Array")
     parser.add_option("--length", dest="length", default=12, help='Vehicle length', metavar="Value")
-    parser.add_option("--height", dest="height", default=4.5, help='Vehicle height', metavar="Value")
+    parser.add_option("--height", dest="height", default=4.4, help='Vehicle height', metavar="Value")
     parser.add_option("--load", dest="load", default=0, help="Vehicle load")
     parser.add_option("--input", dest="inputFile", default="inputData.txt", help='Set type vehicle motor, this is necessary for'
                                                                      ' calculate emission', metavar="String")

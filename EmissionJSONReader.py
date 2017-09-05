@@ -4,6 +4,8 @@ from EquationGenerator import EquationGenerator
 from Interpolate import Interpolate
 from Extrapolate import Extrapolate
 import sys
+import gzip
+
 
 class EmissionsJsonReader:
     def __init__(self):
@@ -27,10 +29,10 @@ class EmissionsJsonReader:
 
     @staticmethod
     def _read_json_file():
-        converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
-        if os.path.isfile(converted_json):
-            with open(converted_json) as data_file:
-                data = json.load(data_file)
+        gzip_json = os.path.join(os.path.dirname(__file__), 'trucksEmissions.json.gz')
+        if os.path.isfile(gzip_json):
+            with gzip.open(gzip_json, "rb") as data_file:
+                data = json.loads(data_file.read().decode("ascii"))
             return data
         else:
             sys.exit("Json file doesn't exist.")
@@ -102,10 +104,11 @@ class EmissionsJsonReader:
             sys.exit("Invalid input file")
 
     def _init_values_from_input_file(self):
-        converted_json = os.path.join(os.path.dirname(__file__), 'convertedData.json')
-        if os.path.isfile(converted_json):
-            with open(converted_json) as data_file:
-                data = json.load(data_file)
+
+        gzip_json = os.path.join(os.path.dirname(__file__), 'trucksEmissions.json.gz')
+        if os.path.isfile(gzip_json):
+            with gzip.open(gzip_json, "rb") as data_file:
+                data = json.loads(data_file.read().decode("ascii"))
 
             type = list(filter(lambda type: type["Name"] == self.type, data["Type"]))
             if len(type) > 0:

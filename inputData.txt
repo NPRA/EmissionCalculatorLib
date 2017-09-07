@@ -1,1 +1,1 @@
-HDV;Gasoline >3.5 t;RT petrol;Conventional
+Passenger Cars;Petrol;Mini;Euro 4;;;;

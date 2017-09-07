@@ -53,8 +53,8 @@ class EmissionCalculatorLib:
         load = self.emissionJson.load
         socket.setdefaulttimeout(30)
         try:
-            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-            url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
+            url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
+            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
             # url with 3 roads from Oslo to Molde
             # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
             response = urlopen(url)
@@ -185,12 +185,12 @@ if __name__ == "__main__":
     parser.add_option("--load", dest="load", default=0, help="Vehicle load")
     parser.add_option("--input", dest="inputFile", default="inputData.txt", help='Set type vehicle motor, this is necessary for'
                                                                      ' calculate emission', metavar="String")
-    parser.add_option("--nox", dest="nox", default=True, help='Get NOx emissions', metavar="Bool")
+    parser.add_option("--nox", dest="nox", default=False, help='Get NOx emissions', metavar="Bool")
     parser.add_option("--co", dest="co", default=True, help='Get CO emissions', metavar="Bool")
-    parser.add_option("--hc", dest="hc", default=True, help='Get HC emissions', metavar="Bool")
-    parser.add_option("--pm", dest="pm", default=True, help='Get PM emissions', metavar="Bool")
-    parser.add_option("--fc", dest="fc", default=True, help='Get FC emissions', metavar="Bool")
-    parser.add_option("--cumulative", dest="cumulative", default=True, help='Cumulative curve in graph', metavar="Bool")
+    parser.add_option("--hc", dest="hc", default=False, help='Get HC emissions', metavar="Bool")
+    parser.add_option("--pm", dest="pm", default=False, help='Get PM emissions', metavar="Bool")
+    parser.add_option("--fc", dest="fc", default=False, help='Get FC emissions', metavar="Bool")
+    parser.add_option("--cumulative", dest="cumulative", default=False, help='Cumulative curve in graph', metavar="Bool")
     parser.add_option("--graph", dest="graph", default=True, help='Show results in graph', metavar="Bool")
 
     (options, args) = parser.parse_args()

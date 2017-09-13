@@ -10,9 +10,16 @@ from setuptools import find_packages, setup, Command
 
 
 # Meta-data
-NAME = "npra-emissionlib"
-DESCRIPTION = """Emission calculator library to calculate emissions given a start and stop position
-personal cars, busses and trailers of different sizes."""
+NAME = "emission"
+DESCRIPTION = """Emission calculator library to calculate total emissions
+given a start and stop position. Various possible routes will be presented
+sorted after the least pollutant route.
+
+Vehicle types will be: personal cars, busses and trailers of different sizes.
+
+NOTE that this extension only works for Norway, since we are using the
+NPRA (Norwegian Public Roads Administration) road database https://www.vegvesen.no/nvdb/apidokumentasjon/
+"""
 URL = "https://github.com/NPRA/EmissionCalculatorLib"
 EMAIL = "asbjorn@fellinghaug.com"
 AUTHOR = """Juraj Cirbus <Juraj.Cirbus@norconsult.com>,
@@ -31,6 +38,7 @@ with io.open(os.path.join(here, 'README.rst'), encoding="utf-8") as f:
 about = {}
 with open(os.path.join(here, NAME, '__version__.py')) as f:
     exec(f.read(), about)
+
 
 class PublishCommand(Command):
     """Support setup.py publish
@@ -53,8 +61,7 @@ class PublishCommand(Command):
     def run(self):
         try:
             self.status('Removing previous builds...')
-            # rmtree(os.path.join(here, 'dist'))
-            print("REMOVE -> {}".format(os.path.join(here, 'dist')))
+            rmtree(os.path.join(here, 'dist'))
         except OSError:
             pass
 

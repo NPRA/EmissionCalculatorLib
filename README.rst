@@ -8,8 +8,8 @@ This python library uses formulas and factors from EU to calculate the various e
 Quickstart
 ----------
 
-- _add some quickstart hints here_
-- _example code to use the library_
-- _run tests_
+- *add some quickstart hints here*
+- *example code to use the library*
+- *run tests*
 
 

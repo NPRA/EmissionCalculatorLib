@@ -165,10 +165,10 @@ class EmissionCalculatorLib:
                         self.emission_summary[i + 1][pollutant] = max(self.pollutants[pollutant][i])
                     else:
                         self.emission_summary[i + 1][pollutant] = sum(self.pollutants[pollutant][i])
-            # print (self.emission_summary)
 
     def get_summary(self):
         return self.emission_summary
+
 
 if __name__ == "__main__":
     VERSION = "0.1.0"
@@ -179,26 +179,27 @@ if __name__ == "__main__":
                           version="%prog " + VERSION + ", Copyright (c) TRAN",
                           description=description, add_help_option=True)
 
-    parser.add_option("--start", dest="startCoord", default=[0,0], help='Set start coordinates', metavar="Array")
-    parser.add_option("--end", dest="endCoord", default=[0,0], help='Set end coordinates', metavar="Array")
+    parser.add_option("--start", dest="startCoord", default=[0, 0], help='Set start coordinates', metavar="Array")
+    parser.add_option("--end", dest="endCoord", default=[0, 0], help='Set end coordinates', metavar="Array")
     parser.add_option("--length", dest="length", default=12, help='Vehicle length', metavar="Value")
     parser.add_option("--height", dest="height", default=4.4, help='Vehicle height', metavar="Value")
     parser.add_option("--load", dest="load", default=0, help="Vehicle load")
-    parser.add_option("--input", dest="inputFile", default="inputData.txt", help='Set type vehicle motor, this is necessary for'
-                                                                     ' calculate emission', metavar="String")
+    parser.add_option("--input", dest="inputFile", default="inputData.txt",
+                      help='Set type vehicle motor, this is necessary for calculate emission', metavar="String")
     parser.add_option("--nox", dest="nox", default=False, help='Get NOx emissions', metavar="Bool")
     parser.add_option("--co", dest="co", default=True, help='Get CO emissions', metavar="Bool")
     parser.add_option("--hc", dest="hc", default=False, help='Get HC emissions', metavar="Bool")
     parser.add_option("--pm", dest="pm", default=False, help='Get PM emissions', metavar="Bool")
     parser.add_option("--fc", dest="fc", default=False, help='Get FC emissions', metavar="Bool")
-    parser.add_option("--cumulative", dest="cumulative", default=False, help='Cumulative curve in graph', metavar="Bool")
+    parser.add_option("--cumulative", dest="cumulative", default=False,
+                      help='Cumulative curve in graph', metavar="Bool")
     parser.add_option("--graph", dest="graph", default=True, help='Show results in graph', metavar="Bool")
 
     (options, args) = parser.parse_args()
 
     emission_calculator = EmissionCalculatorLib()
 
-    coordinates = str(options.startCoord[0])+","+str(options.startCoord[1])+";"+str(options.endCoord[0])+","+str(options.endCoord[1])
+    coordinates = "{start[0]},{start[1]};{end[0]},{end[1]}".format(start=options.startCoord, end=options.endCoord)
     emission_calculator.coordinates = coordinates
     emission_calculator.length = str(options.length)
     emission_calculator.height = str(options.height)

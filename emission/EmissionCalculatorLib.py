@@ -4,11 +4,12 @@ try:
     from urllib.request import urlopen  # Python 3
 except ImportError:
     from urllib import urlopen  # Python 2
-from EmissionJSONReader import EmissionsJsonReader
 import matplotlib.pyplot as plt
 from optparse import OptionParser
-from Pollutants import Pollutants
 import socket
+
+from . import Pollutants
+from . import EmissionsJsonReader
 
 
 class EmissionCalculatorLib:

@@ -17,4 +17,4 @@ class Extrapolate(object):
         return self.extrap(x)
 
 if __name__ == "__main__":
-    Extrapolate([],[])
+    Extrapolate([], [])

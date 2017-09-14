@@ -1,11 +1,11 @@
 import os
 import json
-from EquationGenerator import EquationGenerator
-from Interpolate import Interpolate
-from Extrapolate import Extrapolate
 import sys
 import gzip
 
+from . import EquationGenerator
+from . import Interpolate
+from . import Extrapolate
 
 class EmissionsJsonReader:
     def __init__(self):

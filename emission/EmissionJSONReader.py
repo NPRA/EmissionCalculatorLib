@@ -3,9 +3,10 @@ import json
 import sys
 import gzip
 
-from . import EquationGenerator
+# from . import EquationGenerator
 from . import Interpolate
 from . import Extrapolate
+
 
 class EmissionsJsonReader:
     def __init__(self):

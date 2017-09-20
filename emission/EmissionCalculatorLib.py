@@ -113,13 +113,13 @@ class EmissionCalculatorLib:
         distance = self._get_distance_3d(point1, point2)
         slope = 0.0
         if distance != 0:
-            slope = math.degrees(math.asin((float(point2[2])- float(point1[2]))/distance))
+            slope = math.degrees(math.asin((float(point2[2]) - float(point1[2])) / distance))
         return slope
 
     def _get_velocity(self, index):
         dist = self.atr_distances[index]
         time = 60 * self.atr_times[index]
-        return (dist/time) * 3.6
+        return (dist / time) * 3.6
 
     def calculate_emissions(self):
         self.roads_distances = []
@@ -130,7 +130,7 @@ class EmissionCalculatorLib:
             self.emissionJson.velocity = self._get_velocity(j)
             for i in range(len(self.paths[j])):
                 if (i + 1) < len(self.paths[j]):
-                    if len(distances) > 0:
+                    if distances:
                         distances.append(distances[-1] + self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
                     else:
                         distances.append(self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
@@ -138,8 +138,7 @@ class EmissionCalculatorLib:
                     for pollutant in self.pollutants:
                         calc_emission = self.emissionJson.get_emission_for_pollutant(pollutant)
                         if len(self.pollutants[pollutant][j]) > 0 and self.cumulative:
-                            result_emission = self.pollutants[pollutant][j][
-                                                  -1] + calc_emission
+                            result_emission = self.pollutants[pollutant][j][-1] + calc_emission
                         else:
                             result_emission = calc_emission
                         self.pollutants[pollutant][j].append(result_emission)
@@ -173,9 +172,9 @@ class EmissionCalculatorLib:
 
             # print (self.emission_summary)
             ax = figs[-1]
-            labels = ["Route " + str(i+1) for i in range(len(self.paths))]
-            pos = (len(figs)/10.0) * (-1)
-            ax.legend(labels, loc=(0, pos), ncol = len(self.paths))
+            labels = ["Route " + str(i + 1) for i in range(len(self.paths))]
+            pos = (len(figs) / 10.0) * (-1)
+            ax.legend(labels, loc=(0, pos), ncol=len(self.paths))
             plt.show()
         else:
             for i in range(len(self.paths)):

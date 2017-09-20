@@ -4,12 +4,16 @@ try:
     from urllib.request import urlopen  # Python 3
 except ImportError:
     from urllib import urlopen  # Python 2
+
+import urllib
 import matplotlib.pyplot as plt
 from optparse import OptionParser
 import socket
 
 from . import Pollutants
 from . import EmissionsJsonReader
+
+ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService"
 
 
 class EmissionCalculatorLib:
@@ -50,20 +54,36 @@ class EmissionCalculatorLib:
         # re-init paths
         self.paths = []
 
+    @staticmethod
+    def build_url(height, length, coordinates, load, format="json", geometryformat="isoz"):
+        """Construct a well formed url for the routing service which
+        NPRA is using
+        """
+        params = {
+            "format": format,
+            "height": height,
+            "length": length,
+            "stops": coordinates,
+            "load": load,
+            "geometryformat": geometryformat,
+            "lang": "nb-no",
+        }
+
+        return '?'.join([ROUTE_URL_BASE, urllib.urlencode(params)])
+
     def get_json_from_url(self):
         load = self.emissionJson.load
         socket.setdefaulttimeout(30)
         try:
-            url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
-            # url with 3 roads from Oslo to Molde
-            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
+            url = EmissionCalculatorLib.build_url(self.height, self.length, self.coordinates, load)
+            print("Calling: {}".format(url))
+            print("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
             self._json_data = json.loads(response.read())
             self.set_data(self._json_data)
-        except:
-            self.emission_summary["Fail"] = "Fail to load data from url."
-
+        except IOError as err:
+            print("ioerror: {}".format(err))
+            self.emission_summary["Fail"] = "IOError: Fail to load data from url."
 
     def get_json_data(self):
         return self._json_data

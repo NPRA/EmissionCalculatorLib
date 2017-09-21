@@ -11,7 +11,8 @@ from setuptools import find_packages, setup, Command
 
 # Meta-data
 NAME = "emission"
-DESCRIPTION = """Emission calculator library to calculate total emissions
+DESCRIPTION = "Emission calculator library"
+DESCRIPTION_OLD = """Emission calculator library to calculate total emissions
 given a start and stop position. Various possible routes will be presented
 sorted after the least pollutant route.
 
@@ -22,9 +23,7 @@ NPRA (Norwegian Public Roads Administration) road database https://www.vegvesen.
 """
 URL = "https://github.com/NPRA/EmissionCalculatorLib"
 EMAIL = "asbjorn@fellinghaug.com"
-AUTHOR = """Juraj Cirbus <Juraj.Cirbus@norconsult.com>,
-Tomas Levin <tomas.levin@vegvesen.no>,
-Asbjørn Alexander Fellinghaug <asbjorn.fellinghaug@webstep.no>"""
+AUTHOR = """Juraj Cirbus <Juraj.Cirbus@norconsult.com>, Tomas Levin <tomas.levin@vegvesen.no>, Asbjørn Alexander Fellinghaug <asbjorn.fellinghaug@webstep.no>"""
 
 REQUIRED = [
     'numpy'
@@ -69,8 +68,11 @@ class PublishCommand(Command):
         os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
 
         self.status('Uploading the package to PyPi via Twine...')
-        # os.system('twine upload dist/*')
-        sys.exit()
+        os.system('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
+        #os.system('twine upload dist/*')
+        #sys.exit()
+
+print("Version: {}".format(about['__version__']))
 
 
 setup(
@@ -78,23 +80,28 @@ setup(
     version=about['__version__'],
     description=DESCRIPTION,
     long_description=long_description,
+    keywords="Emission calculation library using the NVDB (Norway)",
     author=AUTHOR,
     author_email=EMAIL,
     url=URL,
     packages=['emission'],
     install_requires=REQUIRED,
+    package_data={
+        'emission': ['*.json.gz'],
+    },
     include_package_data=True,
     license='BSD',
     classifiers=[
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
-        'Programming Language :: Python 2.7',
-        'Programming Language :: Python 3',
-        'Programming Language :: Python 3.3',
-        'Programming Language :: Python 3.4',
-        'Programming Language :: Python 3.5',
-        'Programming Language :: Python 3.6',
-        'Programming Language :: Implementation :: CPython',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
     ],
     # $ setup.py publish support
     cmdclass={

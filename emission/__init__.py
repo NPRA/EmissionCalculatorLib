@@ -8,6 +8,9 @@ from .EmissionJSONReader import EmissionsJsonReader
 from .EmissionCalculatorLib import EmissionCalculatorLib
 from .EquationGenerator import EquationGenerator
 
+
+from .planner import Planner
+
 from .__version__ import  __version__
 
 __author__ = "NPRA - Norwegian Public Roads Administration"

@@ -15,7 +15,8 @@ if __name__ == '__main__':
     calc.length = 124
 
     start_coord = [271809.847394, 7039133.17755]
-    end_coord = [287118.751014, 6746519.41028]
+    # end_coord = [287118.751014, 6746519.41028]
+    end_coord = [265385.432115, 7031118.13344]
 
     vehicle_length = 12
     vehicle_height = 4.4

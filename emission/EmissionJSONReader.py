@@ -6,6 +6,126 @@ import gzip
 # from . import EquationGenerator
 from . import Interpolate
 from . import Extrapolate
+from . import vehicles
+
+
+class EmissionsJsonParser:
+    def __init__(self, vehicle, filename="roadTransport.json.gz"):
+        self._filename = filename
+        self._data = None
+        self._parsed_data = {}
+        self._vehicle = vehicle
+
+        # TODO: Don't need this?
+        self._slope = 0
+
+        self._read_data()
+        # self._parse_data()
+
+    def _read_data(self):
+        gzip_json = os.path.join(os.path.dirname(__file__), self._filename)
+        if os.path.isfile(gzip_json):
+            with gzip.open(gzip_json, "rb") as data_file:
+                self._data = json.loads(data_file.read())
+        else:
+            raise IOError("Can't find file {}".format(self._filename))
+
+    @staticmethod
+    def get_fuel_type(fuel_id):
+        for k, v in vehicles.FuelTypes.__dict__.items():
+            if v == fuel_id:
+                return v
+        return None
+
+    def _parse_data(self, pollutants):
+        if not self._data:
+            raise ValueError("No data to parse.. Something went wrong trying to read input data..")
+
+        categories = self._data.get("Type", None)
+        if not categories:
+            raise AttributeError("Missing 'Type' in JSON file. Inspect file!")
+
+        mapping = {
+            vehicles.VehicleTypes.CAR: vehicles.Car,
+            vehicles.VehicleTypes.VAN: vehicles.Van,
+            vehicles.VehicleTypes.BUS: vehicles.Bus,
+            vehicles.VehicleTypes.LCATEGORY: vehicles.LCategory,
+            vehicles.VehicleTypes.TRUCK: vehicles.Truck
+        }
+
+        # TODO: Refactore - this was primarily done for testing the JSON structure
+        for c in categories:
+            cat_id = c.get("Id")
+            vehicle_type = vehicles.Vehicle.get_type_for_category(cat_id)
+            if vehicle_type != self._vehicle.type:
+                continue
+            # print("cat_id: {}".format(cat_id))
+
+            fuel = c.get("SSC_NAME")
+            for f in fuel:
+                fuel_id = f.get("Id")
+                fuel_type = EmissionsJsonParser.get_fuel_type(fuel_id)
+
+                if not fuel_type:
+                    raise ValueError("BAD FUEL TYPE!")
+
+                if fuel_type != self._vehicle.fuel_type:
+                    continue
+                # print("fuel_id: {}, fuel type: {}".format(fuel_id, fuel_type))
+
+                subsegments = f.get("Subsegment")
+                for s in subsegments:
+                    subsegment_id = s.get("Id").encode("utf-8")
+                    # print("subsegment_id: {}".format(subsegment_id))
+
+                    euro_standard = s.get("TEC_NAME")
+                    for es in euro_standard:
+                        es_id = es.get("Id")
+                        # print("es_id: {}".format(es_id))
+
+                        modes = es.get("Mode")
+                        for m in modes:
+                            m_id = m.get("Id")
+                            # print("mode_id: {}".format(m_id.encode("utf-8")))
+
+                            slopes = m.get("Slope")
+                            for s in slopes:
+                                slope_id = s.get("Id")
+                                # print("slope_id: {}".format(slope_id.encode("utf-8")))
+
+                                loads = s.get("Load")
+                                for l in loads:
+                                    l_id = l.get("Id")
+                                    # print("load id: ".format(l_id.encode("utf-8")))
+
+                                    pollutants = l.get("Pollutant")
+
+                                    for p in pollutants:
+                                        print("Pollutant: {}".format(p.get("Id")))
+                                        print("     subsegment: {}".format(subsegment_id))
+                                        print("     euro_standard: {}".format(es_id))
+                                        print("     mode: {}".format(m_id))
+                                        print("     slope: {}\n".format(slope_id))
+
+                                        # TODO: Store each "pollutant" with meta-data such as
+                                        #       category, fuel, subsegment, euro_standard, slope, load
+                                        #
+                                        #       but, use pollutant "Id" as dict key.
+                                        new_obj = {
+                                            "category": cat_id,
+                                            "subsegment": subsegment_id,
+                                            "euro_standard": es_id
+                                        }
+                                        new_obj.update(p)
+                                        # self._add_pollutant(p.get("Id"), new_obj)
+
+                                    # return
+
+    def _add_pollutant(self, key, new_obj):
+        pass
+
+    def get_for_pollutant(self, p):
+        return 0.5
 
 
 class EmissionsJsonReader:
@@ -137,6 +257,8 @@ class EmissionsJsonReader:
             return 0
         # emission = EquationGenerator(pollutant_data[0], self.velocity)
         # self.velocity = 44
+
+        # TODO: Refactore this calculation - cleancode
         emission = (float(data['Alpha']) * self.velocity ** 2 + float(data['Beta']) * self.velocity + float(data['Gamma']) + (float(data['Delta']) / self.velocity)) / (float(data['Epsilon']) * self.velocity ** 2 + float(data['Zita']) * self.velocity + float(data['Hta'])) * (1 - float(data['Reduction Factor [%]']))
         return emission
 

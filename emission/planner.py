@@ -7,11 +7,28 @@ except ImportError:
     from urllib import urlencode
 import socket
 import math
+import six
 
 from . import vehicles
-from . import EmissionsJsonReader
+from . import EmissionsJsonReader, EmissionsJsonParser
 from .exceptions import RouteError
+from . import Pollutants
 
+
+def enum(**named_values):
+    return type('Enum', (), named_values)
+
+
+# List of possible pollutions
+PollutantTypes = enum(
+    CH4='CH4',
+    CO='CO',
+    EC='EC',
+    NOx='NOx',
+    PM_EXHAUST='PM Exhaust',
+    VOC='VOC')
+
+# URL to remote route webservice
 ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService/"
 
 
@@ -22,7 +39,8 @@ class Route:
         self.distance = distance
         self.minutes = minutes
         self.path = path
-        self.emission = None
+        self.pollutants = {}
+        self.distances = []
 
     def hours_and_minutes(self):
         """Return hours:minutes as a string
@@ -37,6 +55,24 @@ class Route:
         """
         total_time = self.minutes * 60
         return (self.distance / total_time) * 3.6
+
+    def add_pollutant(self, p, calc_emission):
+        if p not in self.pollutants:
+            self.pollutants[p] = []
+
+        self.pollutants[p].append(calc_emission)
+
+    def add_distances(self, distances):
+        self.distances.append(distances)
+
+    def __repl__(self):
+        emissions = ""
+        for p in self.pollutants:
+            emissions += "{}={} ".format(p, self.pollutants[p])
+        return "Route(distance={}, minutes={}, emissions=<{}>)".format(self.distance, self.minutes, emissions)
+
+    def __str__(self):
+        return self.__repl__()
 
 
 class Routes:
@@ -59,6 +95,12 @@ class Routes:
     def add(self, route):
         self._lst.append(route)
 
+    def __repl__(self):
+        return "Routes({})".format("\n".join([str(r) for r in self._lst]))
+
+    def __str__(self):
+        return self.__repl__()
+
 
 class Planner:
     """This class takes a start, stop and vehicle input to give the user
@@ -73,17 +115,27 @@ class Planner:
         if not isinstance(vehicle, vehicles.Vehicle):
             raise ValueError("Vehicle is not of correct type. Check vehicle implementations.")
         self._vehicle = vehicle
-
-        self._emissionJson = EmissionsJsonReader()
-
+        # self._emissionJson = EmissionsJsonParser(vehicle)
+        # self._emissionJson._init_values_from_input_file()
+        self._emissionDb = EmissionsJsonParser(self._vehicle)
         self.routes = Routes()
 
-        # Get remote JSON webservice data with routes
-        # self._get_routes()
-        self._init_pollutants()
+        self._pollutants = {}
 
-    def _init_pollutants(self):
-        self._pollutants = Pollutants()
+    @property
+    def pollutants(self):
+        return self._pollutants
+
+    def add_pollutant(self, pollutant_type):
+        # validate input
+        if pollutant_type not in PollutantTypes.__dict__:
+            raise ValueError("pollutant_type needs to be one of the types defined in planner.PollutantTypes")
+
+        if pollutant_type not in self._pollutants:
+            self._pollutants[pollutant_type] = None
+        else:
+            print("warning: pollutant already added..")
+        print("self._pollutants = {}".format(self._pollutants))
 
     @property
     def coordinates(self):
@@ -136,7 +188,7 @@ class Planner:
         distance = Planner._get_distance_3d(point1, point2)
         slope = 0.0
         if distance:
-            slope = math.degrees(math.asin(float(point2[2]) - float(point1[2])) / distance)
+            slope = math.degrees(math.asin((float(point2[2]) - float(point1[2])) / distance))
         return slope
 
     def _calculate_emissions(self):
@@ -149,11 +201,11 @@ class Planner:
                           path=r.get("geometry").get("paths")[0])
             self.routes.add(route)
 
-        print("Nr of routes: " + len(self.routes))
+        print("Nr of routes: {}".format(len(self.routes)))
 
-        for r in self.routes:
+        for i, route in enumerate(self.routes):
             # A list of x,y,z points that all together represents the route
-            path_coordinates = r.path
+            path_coordinates = route.path
             distances = []
 
             # Nifty little trick to loop over 'path_coordinates',
@@ -166,9 +218,13 @@ class Planner:
                     # first point
                     distances.append(Planner._get_distance_3d(prev, point) / 1000)
                 else:
-                    distances.append(distances[-1], Planner._get_distance_3d(prev, point) / 1000)
+                    distances.append(distances[-1] + Planner._get_distance_3d(prev, point) / 1000)
 
-                self._emissionJson.slope = Planner._get_slope(prev, point)
+                # TODO: Refactore this, so that we pass the 'slope' value
+                #       in when getting the emission for the pollutant
+                print("prev: " + str(prev))
+                print("point: " + str(point))
+                self._emissionDb.slope = Planner._get_slope(prev, point)
 
                 # Calculate pollutants
                 """
@@ -181,7 +237,17 @@ class Planner:
                         self.pollutants[pollutant][j].append(result_emission)
                 """
 
+                for p in self._pollutants:
+                    # if not self._pollutants[p]:
+                    #    self._pollutants[p] = [[] for _ in range(len(self.routes))]
+
+                    # calc_emission = self._emissionJson.get_emission_for_pollutant(p)
+                    calc_emission = self._emissionDb.get_for_pollutant(p)
+                    route.add_pollutant(p, calc_emission)
+
                 prev = point
+
+            route.add_distances(distances)
 
     def run(self):
         """
@@ -195,3 +261,5 @@ class Planner:
         self._get_routes()
         self._calculate_emissions()
         print("Done! Loop over '.routes'")
+
+        print("Routes: {}".format(self.routes))

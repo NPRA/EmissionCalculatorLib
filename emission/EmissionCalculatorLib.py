@@ -79,11 +79,16 @@ class EmissionCalculatorLib:
             print("Calling: {}".format(url))
             print("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
-            self._json_data = json.loads(response.read())
+            body = response.read()
+            self._json_data = json.loads(body)
             self.set_data(self._json_data)
         except IOError as err:
             print("ioerror: {}".format(err))
             self.emission_summary["Fail"] = "IOError: Fail to load data from url."
+        except ValueError as err:
+            print("ValueError: {}".format(err))
+            self.emission_summary["Fail"] = "ValueError: {}\nCode: {}\nBody: {}".format(
+                    err, response.code, body)
 
     def get_json_data(self):
         return self._json_data
@@ -130,11 +135,14 @@ class EmissionCalculatorLib:
             self.emissionJson.velocity = self._get_velocity(j)
             for i in range(len(self.paths[j])):
                 if (i + 1) < len(self.paths[j]):
+
                     if distances:
                         distances.append(distances[-1] + self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
                     else:
                         distances.append(self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
+
                     self.emissionJson.slope = self._get_slope(self.paths[j][i], self.paths[j][i + 1])
+
                     for pollutant in self.pollutants:
                         calc_emission = self.emissionJson.get_emission_for_pollutant(pollutant)
                         if len(self.pollutants[pollutant][j]) > 0 and self.cumulative:

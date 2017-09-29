@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import gzip
+import math
 
 # from . import EquationGenerator
 from . import Interpolate
@@ -124,8 +125,35 @@ class EmissionsJsonParser:
     def _add_pollutant(self, key, new_obj):
         pass
 
-    def get_for_pollutant(self, p):
+    def get_for_pollutant(self, pollutants):
         return 0.5
+
+    @staticmethod
+    def calculate(alpha, beta, delta, epsilon, gamma, hta, reduct_fact, zita, speed=44.0):
+        """
+            {
+            "Alpha": "0.00000000000549670697736844",
+            "Beta": "-0.0334176120766537",
+            "Delta": "-0.000000104372710338195",
+            "Epsilon": "0.00187153627565408",
+            "Gamma": "5.10983452219724",
+            "Hta": "37.5057390279501",
+            "Id": "CO",
+            "Reduction Factor [%]": "0",
+            "Speed": "44",
+            "Vmax": "130",
+            "Vmin": "5",
+            "Zita": "-0.52883090616296"
+        },
+
+            this calculation is taken from the EU spreadsheet!
+        """
+
+        """ ((alpha*speed^2) + (beta*speed) + gamma + (delta/speed))/((epsilon*speed^2) * (zita * speed + htz))"""
+        result = (alpha * math.pow(speed, 2)) + (beta * speed) + gamma + (delta / speed)
+        result /= (epsilon * math.pow(speed, 2)) + ((zita * speed) + hta)
+        result *= (1 - reduct_fact)
+        return result
 
 
 class EmissionsJsonReader:

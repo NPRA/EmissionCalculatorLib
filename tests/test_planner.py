@@ -10,9 +10,7 @@ class TestPlanner:
         vehicle = vehicles.Car(vehicles.FuelTypes.PETROL)
 
         planner = Planner(start, stop, vehicle)
-        
         assert planner.pollutants == {}
 
         planner.add_pollutant(PollutantTypes.NOx)
-
         assert len(planner.pollutants) > 0

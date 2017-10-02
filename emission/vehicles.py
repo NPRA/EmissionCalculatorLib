@@ -15,13 +15,15 @@ FuelTypes = enum(PETROL='Petrol',
 
 
 class Vehicle(object):
-    def __init__(self, vtype, fuel_type, segment, euro_std, slope='', load=0):
+    """Base class for all vehicle types
+    """
+    def __init__(self, vtype, fuel_type, segment, euro_std, slope='0', mode='', load=-1.0):
         self.type = vtype
         self.fuel_type = fuel_type
         self.segment = segment
         self.euro_std = euro_std
-        self.mode = ""
         self.slope = slope
+        self.mode = mode
         self.load = load
 
     @staticmethod
@@ -39,7 +41,7 @@ class Vehicle(object):
 class LCategory(Vehicle):
     """Scooters, 2 and 3-wheels
     """
-    def __init__(self, fuel_type, subsegment='', euro_std=''):
+    def __init__(self, fuel_type, subsegment='', euro_std='', mode=''):
         super(LCategory, self).__init__(VehicleTypes.LCATEGORY, fuel_type, subsegment, euro_std)
 
 
@@ -51,7 +53,7 @@ class Car(Vehicle):
         subsegment_id: Large-SUV-Executive
 
     """
-    def __init__(self, fuel_type, subsegment='Small', euro_std='Euro 4'):
+    def __init__(self, fuel_type, subsegment='Small', euro_std='Euro 4', mode=''):
         super(Car, self).__init__(VehicleTypes.CAR, fuel_type, subsegment, euro_std)
 
 
@@ -61,7 +63,7 @@ class Van(Vehicle):
         subsegment_id: N1-II
         subsegment_id: N1-III
     """
-    def __init__(self, fuel_type, subsegment='N1-I', euro_std='Euro 4'):
+    def __init__(self, fuel_type, subsegment='N1-I', euro_std='Euro 4', mode=''):
         super(Van, self).__init__(VehicleTypes.VAN, fuel_type, subsegment, euro_std)
 
 
@@ -73,7 +75,7 @@ class Bus(Vehicle):
     subsegment_id: Coaches Standard <=18 t
     subsegment_id: Coaches Articulated >18 t
     """
-    def __init__(self, fuel_type, subsegment='Conventional', euro_std='Euro I'):
+    def __init__(self, fuel_type, subsegment='Conventional', euro_std='Euro I', mode=''):
         super(Bus, self).__init__(VehicleTypes.BUS, fuel_type, subsegment, euro_std)
 
 
@@ -94,5 +96,5 @@ class Truck(Vehicle):
     subsegment_id: Rigid 7.5 - 12 t
     subsegment_id: Rigid <=7.5 t
     """
-    def __init__(self, fuel_type, slope, subsegment='Articulated 14 - 20 t', euro_std='Euro I'):
-        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, slope)
+    def __init__(self, fuel_type, slope='0', subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
+        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, slope, mode, load)

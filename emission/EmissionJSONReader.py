@@ -38,6 +38,79 @@ class EmissionsJsonParser:
                 return v
         return None
 
+    def get_subsegments(self):
+        """Util method to list all subsegments for the vehicle
+        passed when constructing this object
+        """
+        subsegments = set()
+
+        categories = self._data.get("Type", None)
+        if not categories:
+            raise AttributeError("Missing 'Type' in JSON file. Inspect file!")
+
+        for c in categories:
+            cat_id = c.get("Id")
+            vehicle_type = vehicles.Vehicle.get_type_for_category(cat_id)
+            if vehicle_type != self._vehicle.type:
+                continue
+            # print("cat_id: {}".format(cat_id))
+
+            fuel = c.get("SSC_NAME")
+            for f in fuel:
+                fuel_id = f.get("Id")
+                fuel_type = EmissionsJsonParser.get_fuel_type(fuel_id)
+
+                if not fuel_type:
+                    raise ValueError("BAD FUEL TYPE!")
+
+                if fuel_type != self._vehicle.fuel_type:
+                    continue
+
+                subsegments = f.get("Subsegment")
+                for s in subsegments:
+                    subsegment_id = s.get("Id").encode("utf-8")
+                    subsegments.add(subsegment_id)
+        return subsegments
+
+    def get_euro_standards(self):
+        """Util method to list all euro standards for the vehicle
+        passed when constructing this object
+        """
+        euro_standards = set()
+
+        categories = self._data.get("Type", None)
+        for c in categories:
+            cat_id = c.get("Id")
+            vehicle_type = vehicles.Vehicle.get_type_for_category(cat_id)
+            if vehicle_type != self._vehicle.type:
+                continue
+            # print("cat_id: {}".format(cat_id))
+
+            fuel = c.get("SSC_NAME")
+            for f in fuel:
+                fuel_id = f.get("Id")
+                fuel_type = EmissionsJsonParser.get_fuel_type(fuel_id)
+
+                if not fuel_type:
+                    raise ValueError("BAD FUEL TYPE!")
+
+                if fuel_type != self._vehicle.fuel_type:
+                    continue
+
+                subsegments = f.get("Subsegment")
+                for s in subsegments:
+                    subsegment_id = s.get("Id").encode("utf-8")
+
+                    if self._vehicle.segment != subsegment_id:
+                        continue
+
+                    euro_standard = s.get("TEC_NAME")
+                    for es in euro_standard:
+                        es_id = es.get("Id")
+                        euro_standards.add(es_id)
+        return euro_standards
+
+
     def _parse_data(self, pollutants):
         if not self._data:
             raise ValueError("No data to parse.. Something went wrong trying to read input data..")
@@ -72,41 +145,56 @@ class EmissionsJsonParser:
 
                 if fuel_type != self._vehicle.fuel_type:
                     continue
-                # print("fuel_id: {}, fuel type: {}".format(fuel_id, fuel_type))
 
                 subsegments = f.get("Subsegment")
                 for s in subsegments:
                     subsegment_id = s.get("Id").encode("utf-8")
-                    # print("subsegment_id: {}".format(subsegment_id))
+
+                    if self._vehicle.segment != subsegment_id:
+                        continue
+                    print("subsegment_id: {}".format(subsegment_id))
 
                     euro_standard = s.get("TEC_NAME")
                     for es in euro_standard:
                         es_id = es.get("Id")
-                        # print("es_id: {}".format(es_id))
+
+                        if self._vehicle.euro_std != es_id:
+                            continue
+                        print("es_id: {}".format(es_id))
+                        # continue
 
                         modes = es.get("Mode")
                         for m in modes:
                             m_id = m.get("Id")
-                            # print("mode_id: {}".format(m_id.encode("utf-8")))
+
+                            if self._vehicle.mode != m_id:
+                                continue
+                            print("mode_id: {}".format(m_id.encode("utf-8")))
 
                             slopes = m.get("Slope")
                             for s in slopes:
                                 slope_id = s.get("Id")
-                                # print("slope_id: {}".format(slope_id.encode("utf-8")))
+
+                                if self._vehicle.slope != slope_id:
+                                    continue
+                                print("slope_id: {}".format(slope_id.encode("utf-8")))
 
                                 loads = s.get("Load")
                                 for l in loads:
                                     l_id = l.get("Id")
-                                    # print("load id: ".format(l_id.encode("utf-8")))
+
+                                    if self._vehicle.load > -1:
+                                        if self._vehicle.load != float(l_id):
+                                            continue
+                                    print("load id: ".format(l_id.encode("utf-8")))
 
                                     pollutants = l.get("Pollutant")
-
                                     for p in pollutants:
                                         print("Pollutant: {}".format(p.get("Id")))
-                                        print("     subsegment: {}".format(subsegment_id))
-                                        print("     euro_standard: {}".format(es_id))
-                                        print("     mode: {}".format(m_id))
-                                        print("     slope: {}\n".format(slope_id))
+                                        # print("     subsegment: {}".format(subsegment_id))
+                                        # print("     euro_standard: {}".format(es_id))
+                                        # print("     mode: {}".format(m_id))
+                                        # print("     slope: {}\n".format(slope_id))
 
                                         # TODO: Store each "pollutant" with meta-data such as
                                         #       category, fuel, subsegment, euro_standard, slope, load
@@ -118,6 +206,7 @@ class EmissionsJsonParser:
                                             "euro_standard": es_id
                                         }
                                         new_obj.update(p)
+                                        print("     new_obj: {}".format(new_obj))
                                         # self._add_pollutant(p.get("Id"), new_obj)
 
                                     # return

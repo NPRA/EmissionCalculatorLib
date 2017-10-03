@@ -17,12 +17,11 @@ FuelTypes = enum(PETROL='Petrol',
 class Vehicle(object):
     """Base class for all vehicle types
     """
-    def __init__(self, vtype, fuel_type, segment, euro_std, slope='0', mode='', load=-1.0):
+    def __init__(self, vtype, fuel_type, segment, euro_std, mode='', load=-1.0):
         self.type = vtype
         self.fuel_type = fuel_type
         self.segment = segment
         self.euro_std = euro_std
-        self.slope = slope
         self.mode = mode
         self.load = load
 
@@ -96,5 +95,5 @@ class Truck(Vehicle):
     subsegment_id: Rigid 7.5 - 12 t
     subsegment_id: Rigid <=7.5 t
     """
-    def __init__(self, fuel_type, slope='0', subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
-        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, slope, mode, load)
+    def __init__(self, fuel_type, subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
+        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, mode, load)

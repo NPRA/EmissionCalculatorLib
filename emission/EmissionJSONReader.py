@@ -11,7 +11,7 @@ from . import vehicles
 
 
 class EmissionsJsonParser:
-    def __init__(self, vehicle, filename="roadTransport.json.gz"):
+    def __init__(self, vehicle, pollutants, filename="roadTransport.json.gz"):
         self._filename = filename
         self._data = None
         self._parsed_data = {}
@@ -20,8 +20,10 @@ class EmissionsJsonParser:
         # TODO: Don't need this?
         self._slope = 0
 
+        self._pollutants = pollutants
+
         self._read_data()
-        # self._parse_data()
+        self._parse_data()
 
     def _read_data(self):
         gzip_json = os.path.join(os.path.dirname(__file__), self._filename)
@@ -111,7 +113,7 @@ class EmissionsJsonParser:
         return euro_standards
 
 
-    def _parse_data(self, pollutants):
+    def _parse_data(self):
         if not self._data:
             raise ValueError("No data to parse.. Something went wrong trying to read input data..")
 
@@ -175,8 +177,8 @@ class EmissionsJsonParser:
                             for s in slopes:
                                 slope_id = s.get("Id")
 
-                                if self._vehicle.slope != slope_id:
-                                    continue
+                                #if self._vehicle.slope != slope_id:
+                                #    continue
                                 print("slope_id: {}".format(slope_id.encode("utf-8")))
 
                                 loads = s.get("Load")
@@ -190,53 +192,85 @@ class EmissionsJsonParser:
 
                                     pollutants = l.get("Pollutant")
                                     for p in pollutants:
-                                        print("Pollutant: {}".format(p.get("Id")))
-                                        # print("     subsegment: {}".format(subsegment_id))
-                                        # print("     euro_standard: {}".format(es_id))
-                                        # print("     mode: {}".format(m_id))
-                                        # print("     slope: {}\n".format(slope_id))
+                                        p_id = p.get("Id")
+                                        if p_id in self._pollutants:
+                                            new_obj = {
+                                                "category": cat_id,
+                                                "subsegment": subsegment_id,
+                                                "euro_standard": es_id,
+                                                "slope": float(slope_id) if slope_id != "" else 0.0,
+                                            }
+                                            new_obj.update(p)
 
-                                        # TODO: Store each "pollutant" with meta-data such as
-                                        #       category, fuel, subsegment, euro_standard, slope, load
-                                        #
-                                        #       but, use pollutant "Id" as dict key.
-                                        new_obj = {
-                                            "category": cat_id,
-                                            "subsegment": subsegment_id,
-                                            "euro_standard": es_id
-                                        }
-                                        new_obj.update(p)
-                                        print("     new_obj: {}".format(new_obj))
-                                        # self._add_pollutant(p.get("Id"), new_obj)
+                                            if not self._pollutants.get(p_id, None):
+                                                self._pollutants[p_id] = []
+                                            self._pollutants[p_id].append(new_obj)
 
-                                    # return
+                                            print("Pollutant: {}".format(p.get("Id")))
+                                            print("     new_obj: {}".format(new_obj))
 
-    def _add_pollutant(self, key, new_obj):
-        pass
+    def get_for_pollutant(self, pollutant_id, slope=None):
+        if pollutant_id not in self._pollutants:
+            raise ValueError("Pollutant ID not in list of pollutations to search for..")
 
-    def get_for_pollutant(self, pollutants):
-        return 0.5
+        print("== POLLUTANT_ID = {}".format(pollutant_id))
+
+        pollutant = None
+        if len(self._pollutants[pollutant_id]) > 1:
+            positive_slopes = [0, 0.02, 0.04, 0.06]
+            negative_slopes = [-0.06, -0.04, -0.02, 0]
+            # print("Slope: {}".format(slope))
+
+            # Multiple items in list, meaning we have 
+            # various slope values
+            x = [x for x in self._pollutants[pollutant_id] if x['slope'] == slope]
+            if any(x):
+                print("FOUND MATCH: {}".format(slope))
+                pollutant = x[0]
+                print("      pollutant: {}".format(pollutant))
+            else:
+                # No match was found. Need to Extrapolate / Interpolate the 
+                # emission value
+                print("NO MATCH: {}".format(slope))
+                slopes_for_pollutant = []
+                if slope > 0.0:
+                    tmp_pollutants = [x for x in self._pollutants[pollutant_id] if x['slope'] in positive_slopes]
+                    slopes_for_pollutant = map(EmissionsJsonParser.calculate, tmp_pollutants)
+                    extrapolate = Extrapolate(positive_slopes, slopes_for_pollutant)
+                    tmp = extrapolate[slope]
+                    print("Extrapolated value: {}".format(tmp))
+                    return tmp
+
+                else:
+                    tmp_pollutants = [x for x in self._pollutants[pollutant_id] if x['slope'] in negative_slopes]
+                    slopes_for_pollutant = map(EmissionsJsonParser.calculate, tmp_pollutants)
+                    interpolate = Interpolate(negative_slopes, slopes_for_pollutant)
+                    tmp = interpolate[slope]
+                    print("Interpolated value: {}".format(tmp))
+                    return tmp
+
+        else:
+            pollutant = self._pollutants[pollutant_id][0]
+        tmp = EmissionsJsonParser.calculate(pollutant)
+        print("Regular value: {}".format(tmp))
+        return tmp
 
     @staticmethod
-    def calculate(alpha, beta, delta, epsilon, gamma, hta, reduct_fact, zita, speed=44.0):
+    def calculate(pollutant):
         """
-            {
-            "Alpha": "0.00000000000549670697736844",
-            "Beta": "-0.0334176120766537",
-            "Delta": "-0.000000104372710338195",
-            "Epsilon": "0.00187153627565408",
-            "Gamma": "5.10983452219724",
-            "Hta": "37.5057390279501",
-            "Id": "CO",
-            "Reduction Factor [%]": "0",
-            "Speed": "44",
-            "Vmax": "130",
-            "Vmin": "5",
-            "Zita": "-0.52883090616296"
-        },
-
             this calculation is taken from the EU spreadsheet!
         """
+        alpha = float(pollutant.get("Alpha"))
+        beta = float(pollutant.get("Beta"))
+        delta = float(pollutant.get("Delta"))
+        epsilon = float(pollutant.get("Epsilon"))
+        gamma = float(pollutant.get("Gamma"))
+        hta = float(pollutant.get("Hta"))
+        reduct_fact = float(pollutant.get("Reduction Factor [%]"))
+        speed = float(pollutant.get("Speed"))
+        v_max = float(pollutant.get("Vmax"))
+        v_min = float(pollutant.get("Vmin"))
+        zita = float(pollutant.get("Zita"))
 
         """ ((alpha*speed^2) + (beta*speed) + gamma + (delta/speed))/((epsilon*speed^2) * (zita * speed + htz))"""
         result = (alpha * math.pow(speed, 2)) + (beta * speed) + gamma + (delta / speed)

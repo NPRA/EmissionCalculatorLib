@@ -112,6 +112,45 @@ class EmissionsJsonParser:
                         euro_standards.add(es_id)
         return euro_standards
 
+    def get_modes(self):
+        modes = set()
+        categories = self._data.get("Type", None)
+        for c in categories:
+            cat_id = c.get("Id")
+            vehicle_type = vehicles.Vehicle.get_type_for_category(cat_id)
+            if vehicle_type != self._vehicle.type:
+                continue
+
+            fuel = c.get("SSC_NAME")
+            for f in fuel:
+                fuel_id = f.get("Id")
+                fuel_type = EmissionsJsonParser.get_fuel_type(fuel_id)
+
+                if not fuel_type:
+                    raise ValueError("BAD FUEL TYPE!")
+
+                if fuel_type != self._vehicle.fuel_type:
+                    continue
+
+                subsegments = f.get("Subsegment")
+                for s in subsegments:
+                    subsegment_id = s.get("Id").encode("utf-8")
+
+                    if self._vehicle.segment != subsegment_id:
+                        continue
+
+                    euro_standard = s.get("TEC_NAME")
+                    for es in euro_standard:
+                        es_id = es.get("Id")
+
+                        if self._vehicle.euro_std != es_id:
+                            continue
+
+                        modes = es.get("Mode")
+                        for m in modes:
+                            m_id = m.get("Id")
+                            modes.add(m_id)
+        return modes
 
     def _parse_data(self):
         if not self._data:

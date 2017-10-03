@@ -290,4 +290,31 @@ class Planner:
         self._calculate_emissions()
         print("Done! Loop over '.routes'")
 
-        print("Routes: {}".format(self.routes))
+        # print("Routes: {}".format(self.routes))
+        print("Routes")
+        for r in self.routes:
+            print(">> {}".format(r))
+            for p in self._pollutants.keys():
+                print("     pollutant: {} -> {}".format(p, r.total_emission(p)))
+
+        self.routes.sort()
+        print("After sorted..:")
+        for r in self.routes:
+            print(">> {}".format(r))
+
+        sorted_after_NOx = sorted(self.routes, key=lambda x: x.total_emission('NOx'))
+        print("Sorted after NOx..:")
+        for r in sorted_after_NOx:
+            print(">> {} NOx: {}".format(r, r.total_emission('NOx')))
+
+        sorted_after_CO = sorted(self.routes, key=lambda x: x.total_emission('CO'))
+        print("Sorted after CO")
+        for r in sorted_after_CO:
+            print(">> {} CO: {}".format(r, r.total_emission('CO')))
+
+        # TODO:
+        # 1. Add sorting capabilities for the Route object
+        # 2. Add pretty printing of each Route
+        # 3. Sum up total emission per route
+        # 4. Use both time and emission to sort the routes
+        # 5. Create more example codes to highlight the flow

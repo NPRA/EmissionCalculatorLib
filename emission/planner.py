@@ -212,7 +212,14 @@ class Planner:
         return slope
 
     def _calculate_emissions(self):
-        self.routes = Routes()
+        self._emissionDb = EmissionsJsonParser(self._vehicle, self._pollutants)
+
+        self.routes = RouteSet()
+
+        if "routes" not in self._json_data:
+            print("Error in returned JSON data from web service.")
+            print("data: {}".format(self._json_data))
+            return
 
         for r in self._json_data["routes"]["features"]:
             attributes = r.get("attributes")
@@ -242,9 +249,10 @@ class Planner:
 
                 # TODO: Refactore this, so that we pass the 'slope' value
                 #       in when getting the emission for the pollutant
-                print("prev: " + str(prev))
-                print("point: " + str(point))
-                self._emissionDb.slope = Planner._get_slope(prev, point)
+                # print("prev: " + str(prev))
+                # print("point: " + str(point))
+                #self._emissionDb.slope = Planner._get_slope(prev, point)
+                point_slope = Planner._get_slope(prev, point)
 
                 # Calculate pollutants
                 """
@@ -262,7 +270,7 @@ class Planner:
                     #    self._pollutants[p] = [[] for _ in range(len(self.routes))]
 
                     # calc_emission = self._emissionJson.get_emission_for_pollutant(p)
-                    calc_emission = self._emissionDb.get_for_pollutant(p)
+                    calc_emission = self._emissionDb.get_for_pollutant(p, point_slope)
                     route.add_pollutant(p, calc_emission)
 
                 prev = point

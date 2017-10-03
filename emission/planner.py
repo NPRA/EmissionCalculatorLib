@@ -136,8 +136,8 @@ class Planner:
         self._vehicle = vehicle
         # self._emissionJson = EmissionsJsonParser(vehicle)
         # self._emissionJson._init_values_from_input_file()
-        self._emissionDb = EmissionsJsonParser(self._vehicle)
-        self.routes = Routes()
+        self._emissionDb = None  # EmissionsJsonParser(self._vehicle)
+        self.routes = RouteSet()
 
         self._pollutants = {}
 
@@ -166,12 +166,13 @@ class Planner:
         """Construct a well formed url for the routing service which
         NPRA is using.
         """
+        load = vehicle.load if vehicle.load > -1.0 else 0
         params = {
             "format": format,
-            "height": vehicle.height,
-            "length": vehicle.length,
+            # "height": vehicle.height,
+            # "length": vehicle.length,
             "stops": coordinates,
-            "load": vehicle.load,
+            "load": load,
             "geometryformat": geometryformat,
             "lang": "nb-no",
         }

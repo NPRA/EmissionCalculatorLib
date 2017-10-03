@@ -65,11 +65,16 @@ class Route:
     def add_distances(self, distances):
         self.distances.append(distances)
 
+    def total_emission(self, pollutant):
+        total = sum(self.pollutants[pollutant])
+        return total
+
     def __repl__(self):
-        emissions = ""
-        for p in self.pollutants:
-            emissions += "{}={} ".format(p, self.pollutants[p])
-        return "Route(distance={}, minutes={}, emissions=<{}>)".format(self.distance, self.minutes, emissions)
+        # emissions = ""
+        # for p in self.pollutants:
+        #     emissions += "{}={} ".format(p, self.pollutants[p])
+        fmt = "Route(distance={}, minutes={})"
+        return fmt.format(self.distance, self.minutes)
 
     def __str__(self):
         return self.__repl__()

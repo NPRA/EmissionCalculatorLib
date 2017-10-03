@@ -79,8 +79,16 @@ class Route:
     def __str__(self):
         return self.__repl__()
 
+    def __eq__(self, other):
+        return self.minutes == other.minutes
 
-class Routes:
+    def __lt__(self, other):
+        return self.minutes < other.minutes
+
+
+
+
+class RouteSet:
     """A collection of Route objects"""
     def __init__(self, routes=None):
         if routes is None:
@@ -101,10 +109,16 @@ class Routes:
         self._lst.append(route)
 
     def __repl__(self):
-        return "Routes({})".format("\n".join([str(r) for r in self._lst]))
+        return "RouteSet({})".format("\n".join([str(r) for r in self._lst]))
 
     def __str__(self):
         return self.__repl__()
+
+    def sort(self, cmp=None, key=None, reverse=False):
+        self._lst.sort(cmp, key, reverse)
+
+    def __hash__(self):
+        return hash(self._lst)
 
 
 class Planner:

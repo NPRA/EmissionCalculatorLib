@@ -13,8 +13,10 @@ import emission
 if __name__ == '__main__':
     start = [271809.847394, 7039133.17755]
     stop = [265385.432115, 7031118.13344]
-    fuel_petrol = emission.vehicles.FuelTypes.PETROL
-    vehicle = emission.vehicles.Car(fuel_petrol)
+    # fuel_petrol = emission.vehicles.FuelTypes.PETROL
+    # vehicle = emission.vehicles.Car(fuel_petrol)
+    fuel_diesel = emission.vehicles.FuelTypes.DIESEL
+    vehicle = emission.vehicles.Truck(fuel_diesel)
 
 
     planner = emission.Planner(start, stop, vehicle)

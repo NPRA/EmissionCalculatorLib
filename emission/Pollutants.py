@@ -1,3 +1,10 @@
+def enum(**named_values):
+    return type('Enum', (), named_values)
+
+
+types = enum(FC='FC', PM='PM', HC='HC', CO='CO', NOx='NOx')
+
+
 class Pollutants:
     def __init__(self, paths):
         self._pollutants = {}

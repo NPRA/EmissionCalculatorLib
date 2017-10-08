@@ -4,11 +4,16 @@ try:
     from urllib.request import urlopen  # Python 3
 except ImportError:
     from urllib import urlopen  # Python 2
-from EmissionJSONReader import EmissionsJsonReader
+
+import urllib
 import matplotlib.pyplot as plt
 from optparse import OptionParser
-from Pollutants import Pollutants
 import socket
+
+from . import Pollutants
+from . import EmissionsJsonReader
+
+ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService"
 
 
 class EmissionCalculatorLib:
@@ -49,20 +54,41 @@ class EmissionCalculatorLib:
         # re-init paths
         self.paths = []
 
+    @staticmethod
+    def build_url(height, length, coordinates, load, format="json", geometryformat="isoz"):
+        """Construct a well formed url for the routing service which
+        NPRA is using
+        """
+        params = {
+            "format": format,
+            "height": height,
+            "length": length,
+            "stops": coordinates,
+            "load": load,
+            "geometryformat": geometryformat,
+            "lang": "nb-no",
+        }
+
+        return '?'.join([ROUTE_URL_BASE, urllib.urlencode(params)])
+
     def get_json_from_url(self):
         load = self.emissionJson.load
         socket.setdefaulttimeout(30)
         try:
-            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=270337.81,7041814.57%3B296378.67,7044118.5&weight=50&geometryformat=isoz"
-            url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height="+self.height+"&lang=nb-no&length="+self.length+"&stops="+self.coordinates+"&weight="+load+"&geometryformat=isoz"
-            # url with 3 roads from Oslo to Molde
-            # url = "http://multirit.triona.se/routingService_v1_0/routingService?barriers=&format=json&height=4.5&lang=nb-no&length=12&stops=262210.96,6649335.15%3B96311.150622257,6969883.5407672&weight=50&geometryformat=isoz"
+            url = EmissionCalculatorLib.build_url(self.height, self.length, self.coordinates, load)
+            print("Calling: {}".format(url))
+            print("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
-            self._json_data = json.loads(response.read())
+            body = response.read()
+            self._json_data = json.loads(body)
             self.set_data(self._json_data)
-        except:
-            self.emission_summary["Fail"] = "Fail to load data from url."
-
+        except IOError as err:
+            print("ioerror: {}".format(err))
+            self.emission_summary["Fail"] = "IOError: Fail to load data from url."
+        except ValueError as err:
+            print("ValueError: {}".format(err))
+            self.emission_summary["Fail"] = "ValueError: {}\nCode: {}\nBody: {}".format(
+                    err, response.code, body)
 
     def get_json_data(self):
         return self._json_data
@@ -92,13 +118,13 @@ class EmissionCalculatorLib:
         distance = self._get_distance_3d(point1, point2)
         slope = 0.0
         if distance != 0:
-            slope = math.degrees(math.asin((float(point2[2])- float(point1[2]))/distance))
+            slope = math.degrees(math.asin((float(point2[2]) - float(point1[2])) / distance))
         return slope
 
     def _get_velocity(self, index):
         dist = self.atr_distances[index]
         time = 60 * self.atr_times[index]
-        return (dist/time) * 3.6
+        return (dist / time) * 3.6
 
     def calculate_emissions(self):
         self.roads_distances = []
@@ -109,16 +135,18 @@ class EmissionCalculatorLib:
             self.emissionJson.velocity = self._get_velocity(j)
             for i in range(len(self.paths[j])):
                 if (i + 1) < len(self.paths[j]):
-                    if len(distances) > 0:
+
+                    if distances:
                         distances.append(distances[-1] + self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
                     else:
                         distances.append(self._get_distance_3d(self.paths[j][i], self.paths[j][i + 1]) / 1000)
+
                     self.emissionJson.slope = self._get_slope(self.paths[j][i], self.paths[j][i + 1])
+
                     for pollutant in self.pollutants:
                         calc_emission = self.emissionJson.get_emission_for_pollutant(pollutant)
                         if len(self.pollutants[pollutant][j]) > 0 and self.cumulative:
-                            result_emission = self.pollutants[pollutant][j][
-                                                  -1] + calc_emission
+                            result_emission = self.pollutants[pollutant][j][-1] + calc_emission
                         else:
                             result_emission = calc_emission
                         self.pollutants[pollutant][j].append(result_emission)
@@ -152,9 +180,9 @@ class EmissionCalculatorLib:
 
             # print (self.emission_summary)
             ax = figs[-1]
-            labels = ["Route " + str(i+1) for i in range(len(self.paths))]
-            pos = (len(figs)/10.0) * (-1)
-            ax.legend(labels, loc=(0, pos), ncol = len(self.paths))
+            labels = ["Route " + str(i + 1) for i in range(len(self.paths))]
+            pos = (len(figs) / 10.0) * (-1)
+            ax.legend(labels, loc=(0, pos), ncol=len(self.paths))
             plt.show()
         else:
             for i in range(len(self.paths)):
@@ -164,10 +192,10 @@ class EmissionCalculatorLib:
                         self.emission_summary[i + 1][pollutant] = max(self.pollutants[pollutant][i])
                     else:
                         self.emission_summary[i + 1][pollutant] = sum(self.pollutants[pollutant][i])
-            # print (self.emission_summary)
 
     def get_summary(self):
         return self.emission_summary
+
 
 if __name__ == "__main__":
     VERSION = "0.1.0"
@@ -178,26 +206,27 @@ if __name__ == "__main__":
                           version="%prog " + VERSION + ", Copyright (c) TRAN",
                           description=description, add_help_option=True)
 
-    parser.add_option("--start", dest="startCoord", default=[0,0], help='Set start coordinates', metavar="Array")
-    parser.add_option("--end", dest="endCoord", default=[0,0], help='Set end coordinates', metavar="Array")
+    parser.add_option("--start", dest="startCoord", default=[0, 0], help='Set start coordinates', metavar="Array")
+    parser.add_option("--end", dest="endCoord", default=[0, 0], help='Set end coordinates', metavar="Array")
     parser.add_option("--length", dest="length", default=12, help='Vehicle length', metavar="Value")
     parser.add_option("--height", dest="height", default=4.4, help='Vehicle height', metavar="Value")
     parser.add_option("--load", dest="load", default=0, help="Vehicle load")
-    parser.add_option("--input", dest="inputFile", default="inputData.txt", help='Set type vehicle motor, this is necessary for'
-                                                                     ' calculate emission', metavar="String")
-    parser.add_option("--nox", dest="nox", default=True, help='Get NOx emissions', metavar="Bool")
+    parser.add_option("--input", dest="inputFile", default="inputData.txt",
+                      help='Set type vehicle motor, this is necessary for calculate emission', metavar="String")
+    parser.add_option("--nox", dest="nox", default=False, help='Get NOx emissions', metavar="Bool")
     parser.add_option("--co", dest="co", default=True, help='Get CO emissions', metavar="Bool")
-    parser.add_option("--hc", dest="hc", default=True, help='Get HC emissions', metavar="Bool")
-    parser.add_option("--pm", dest="pm", default=True, help='Get PM emissions', metavar="Bool")
-    parser.add_option("--fc", dest="fc", default=True, help='Get FC emissions', metavar="Bool")
-    parser.add_option("--cumulative", dest="cumulative", default=True, help='Cumulative curve in graph', metavar="Bool")
+    parser.add_option("--hc", dest="hc", default=False, help='Get HC emissions', metavar="Bool")
+    parser.add_option("--pm", dest="pm", default=False, help='Get PM emissions', metavar="Bool")
+    parser.add_option("--fc", dest="fc", default=False, help='Get FC emissions', metavar="Bool")
+    parser.add_option("--cumulative", dest="cumulative", default=False,
+                      help='Cumulative curve in graph', metavar="Bool")
     parser.add_option("--graph", dest="graph", default=True, help='Show results in graph', metavar="Bool")
 
     (options, args) = parser.parse_args()
 
     emission_calculator = EmissionCalculatorLib()
 
-    coordinates = str(options.startCoord[0])+","+str(options.startCoord[1])+";"+str(options.endCoord[0])+","+str(options.endCoord[1])
+    coordinates = "{start[0]},{start[1]};{end[0]},{end[1]}".format(start=options.startCoord, end=options.endCoord)
     emission_calculator.coordinates = coordinates
     emission_calculator.length = str(options.length)
     emission_calculator.height = str(options.height)

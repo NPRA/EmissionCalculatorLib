@@ -1,40 +1,46 @@
 from emission import EmissionsJsonReader, EmissionsJsonParser
-from emission import vehicles
+from emission import vehicles, PollutantTypes
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
-class TestEmissionJsonReader:
-    def test_construct(self):
-        fuel_type = vehicles.FuelTypes.PETROL
-        vehicle = vehicles.Car(fuel_type)
+class TestEmissionsJsonReader:
+    def test_simple_init(self):
+        # fuel_type = vehicles.FuelTypes.PETROL
+        # vehicle = vehicles.Car(fuel_type)
         ejr = EmissionsJsonReader()
         assert ejr is not None
 
-    def test_init_with_data(self):
-        #ejr = EmissionsJsonReader()
-        #ejr._init_values_from_input_file()
-        #assert len(ejr._result_mode) > 0
+
+class TestEmissionsJsonParser:
+    def test_init(self):
         fuel_type = vehicles.FuelTypes.PETROL
         vehicle = vehicles.Car(fuel_type)
-        ejp = EmissionsJsonParser(vehicle)
+        pollutants = {
+            PollutantTypes.CO: None,
+            PollutantTypes.PM_EXHAUST: None
+        }
+
+        ejp = EmissionsJsonParser(vehicle, pollutants)
         assert ejp is not None
 
     def test_calculate(self):
-        alpha = 0.00000000000549670697736844
-        beta = -0.0334176120766537
-        delta = -0.000000104372710338195
-        epsilon = 0.00187153627565408
-        gamma = 5.10983452219724
-        hta = 37.5057390279501
-        reduct_fact = 0
-        zita = -0.52883090616296
-        speed = 44
+        pollutant = {
+            "Alpha": 0.00000000000549670697736844,
+            "Beta": -0.0334176120766537,
+            "Delta": -0.000000104372710338195,
+            "Epsilon": 0.00187153627565408,
+            "Gamma": 5.10983452219724,
+            "Hta": 37.5057390279501,
+            "Reduction Factor [%]": 0,
+            "Zita": -0.52883090616296,
+            "Speed": 100,
+            "Vmax": 44,
+            "Vmin": 0,
+        }
 
-        expected_result = 0.2038
-        result = EmissionsJsonParser.calculate(alpha, beta, delta, epsilon,
-                                               gamma, hta, reduct_fact,
-                                               zita, speed)
+        expected_result = 0.529678
+        result = EmissionsJsonParser.calculate(pollutant)
         assert isclose(result, expected_result, rel_tol=1e-03)

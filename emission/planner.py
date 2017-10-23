@@ -221,6 +221,8 @@ class Planner:
             print("data: {}".format(self._json_data))
             return
 
+        # Create a "set" of Routes. The planner web service will
+        # return 2-4 routes with different paths.
         for r in self._json_data["routes"]["features"]:
             attributes = r.get("attributes")
             route = Route(distance=attributes.get("Total_Meters"),
@@ -228,8 +230,8 @@ class Planner:
                           path=r.get("geometry").get("paths")[0])
             self.routes.add(route)
 
-        print("Nr of routes: {}".format(len(self.routes)))
 
+        print("Nr of routes: {}".format(len(self.routes)))
         for i, route in enumerate(self.routes):
             # A list of x,y,z points that all together represents the route
             path_coordinates = route.path
@@ -247,29 +249,10 @@ class Planner:
                 else:
                     distances.append(distances[-1] + Planner._get_distance_3d(prev, point) / 1000)
 
-                # TODO: Refactore this, so that we pass the 'slope' value
-                #       in when getting the emission for the pollutant
-                # print("prev: " + str(prev))
-                # print("point: " + str(point))
-                #self._emissionDb.slope = Planner._get_slope(prev, point)
                 point_slope = Planner._get_slope(prev, point)
 
-                # Calculate pollutants
-                """
-                for pollutant in self.pollutants:
-                        calc_emission = self.emissionJson.get_emission_for_pollutant(pollutant)
-                        if len(self.pollutants[pollutant][j]) > 0 and self.cumulative:
-                            result_emission = self.pollutants[pollutant][j][-1] + calc_emission
-                        else:
-                            result_emission = calc_emission
-                        self.pollutants[pollutant][j].append(result_emission)
-                """
-
+                # Calculate emission for each pollutants the user has asked for
                 for p in self._pollutants:
-                    # if not self._pollutants[p]:
-                    #    self._pollutants[p] = [[] for _ in range(len(self.routes))]
-
-                    # calc_emission = self._emissionJson.get_emission_for_pollutant(p)
                     calc_emission = self._emissionDb.get_for_pollutant(p, point_slope)
                     route.add_pollutant(p, calc_emission)
 

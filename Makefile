@@ -28,3 +28,5 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf emission/*.pyc
+
+help: default

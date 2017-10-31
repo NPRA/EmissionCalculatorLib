@@ -192,7 +192,7 @@ class EmissionsJsonParser:
 
                     if self._vehicle.segment != subsegment_id:
                         continue
-                    print("subsegment_id: {}".format(subsegment_id))
+                    log.debu("subsegment_id: {}".format(subsegment_id))
 
                     euro_standard = s.get("TEC_NAME")
                     for es in euro_standard:

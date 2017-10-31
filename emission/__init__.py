@@ -1,7 +1,7 @@
-"""Emission python module 
-"""
+"""Emission python module"""
 
 import logging
+log = logging.getLogger("emission")
 
 from .Extrapolate import Extrapolate
 from .Interpolate import Interpolate
@@ -14,4 +14,3 @@ from .__version__ import  __version__
 
 __author__ = "NPRA - Norwegian Public Roads Administration"
 
-log = logging.getLogger("emission")

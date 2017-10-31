@@ -214,8 +214,8 @@ class Planner:
         self.routes = RouteSet()
 
         if "routes" not in self._json_data:
-            print("Error in returned JSON data from web service.")
-            print("data: {}".format(self._json_data))
+            log.debug("Error in returned JSON data from web service.")
+            log.debug("data: {}".format(self._json_data))
             return
 
         # Create a "set" of Routes. The planner web service will
@@ -227,8 +227,7 @@ class Planner:
                           path=r.get("geometry").get("paths")[0])
             self.routes.add(route)
 
-
-        print("Nr of routes: {}".format(len(self.routes)))
+        log.debug("Nr of routes: {}".format(len(self.routes)))
         for i, route in enumerate(self.routes):
             # A list of x,y,z points that all together represents the route
             path_coordinates = route.path
@@ -268,29 +267,29 @@ class Planner:
 
         self._get_routes()
         self._calculate_emissions()
-        print("Done! Loop over '.routes'")
+        log.debug("Done! Loop over '.routes'")
 
-        # print("Routes: {}".format(self.routes))
-        print("Routes")
+        # log.debug("Routes: {}".format(self.routes))
+        log.debug("Routes")
         for r in self.routes:
-            print(">> {}".format(r))
+            log.debug(">> {}".format(r))
             for p in self._pollutants.keys():
-                print("     pollutant: {} -> {}".format(p, r.total_emission(p)))
+                log.debug("     pollutant: {} -> {}".format(p, r.total_emission(p)))
 
         self.routes.sort()
-        print("After sorted..:")
+        log.debug("After sorted..:")
         for r in self.routes:
-            print(">> {}".format(r))
+            log.debug(">> {}".format(r))
 
         sorted_after_NOx = sorted(self.routes, key=lambda x: x.total_emission('NOx'))
-        print("Sorted after NOx..:")
+        log.debug("Sorted after NOx..:")
         for r in sorted_after_NOx:
-            print(">> {} NOx: {}".format(r, r.total_emission('NOx')))
+            log.debug(">> {} NOx: {}".format(r, r.total_emission('NOx')))
 
         sorted_after_CO = sorted(self.routes, key=lambda x: x.total_emission('CO'))
-        print("Sorted after CO")
+        log.debug("Sorted after CO")
         for r in sorted_after_CO:
-            print(">> {} CO: {}".format(r, r.total_emission('CO')))
+            log.debug(">> {} CO: {}".format(r, r.total_emission('CO')))
 
         # TODO:
         # 1. Add sorting capabilities for the Route object

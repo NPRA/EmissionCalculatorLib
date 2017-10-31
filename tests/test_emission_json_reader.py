@@ -1,17 +1,9 @@
-from emission import EmissionsJsonReader, EmissionsJsonParser
+from emission import EmissionsJsonParser
 from emission import vehicles, PollutantTypes
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-
-
-class TestEmissionsJsonReader:
-    def test_simple_init(self):
-        # fuel_type = vehicles.FuelTypes.PETROL
-        # vehicle = vehicles.Car(fuel_type)
-        ejr = EmissionsJsonReader()
-        assert ejr is not None
 
 
 class TestEmissionsJsonParser:

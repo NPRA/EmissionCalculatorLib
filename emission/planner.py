@@ -7,12 +7,10 @@ except ImportError:
     from urllib import urlencode
 import socket
 import math
-import six
 
-from . import vehicles
-from . import EmissionsJsonReader, EmissionsJsonParser
+from . import vehicles, log
+from . import EmissionsJsonParser
 from .exceptions import RouteError
-from . import Pollutants
 
 
 def enum(**named_values):
@@ -33,8 +31,8 @@ ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService/"
 
 
 class Route:
-    """Represent a route object from NVDB RoutingService
-    """
+    """Represent a route object from NVDB RoutingService"""
+
     def __init__(self, distance, minutes, path):
         self.distance = distance
         self.minutes = minutes
@@ -86,10 +84,9 @@ class Route:
         return self.minutes < other.minutes
 
 
-
-
 class RouteSet:
     """A collection of Route objects"""
+
     def __init__(self, routes=None):
         if routes is None:
             self._lst = []

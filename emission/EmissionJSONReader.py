@@ -192,7 +192,7 @@ class EmissionsJsonParser:
 
                     if self._vehicle.segment != subsegment_id:
                         continue
-                    log.debu("subsegment_id: {}".format(subsegment_id))
+                    log.debug("subsegment_id: {}".format(subsegment_id))
 
                     euro_standard = s.get("TEC_NAME")
                     for es in euro_standard:
@@ -200,7 +200,7 @@ class EmissionsJsonParser:
 
                         if self._vehicle.euro_std != es_id:
                             continue
-                        print("es_id: {}".format(es_id))
+                        log.debug("es_id: {}".format(es_id))
                         # continue
 
                         modes = es.get("Mode")
@@ -209,7 +209,7 @@ class EmissionsJsonParser:
 
                             if self._vehicle.mode != m_id:
                                 continue
-                            print("mode_id: {}".format(m_id.encode("utf-8")))
+                            log.debug("mode_id: {}".format(m_id.encode("utf-8")))
 
                             slopes = m.get("Slope")
                             for s in slopes:
@@ -217,7 +217,7 @@ class EmissionsJsonParser:
 
                                 #if self._vehicle.slope != slope_id:
                                 #    continue
-                                print("slope_id: {}".format(slope_id.encode("utf-8")))
+                                log.debug("slope_id: {}".format(slope_id.encode("utf-8")))
 
                                 loads = s.get("Load")
                                 for l in loads:
@@ -226,7 +226,7 @@ class EmissionsJsonParser:
                                     if self._vehicle.load > -1:
                                         if self._vehicle.load != float(l_id):
                                             continue
-                                    print("load id: ".format(l_id.encode("utf-8")))
+                                    log.debug("load id: ".format(l_id.encode("utf-8")))
 
                                     pollutants = l.get("Pollutant")
                                     for p in pollutants:
@@ -244,39 +244,38 @@ class EmissionsJsonParser:
                                                 self._pollutants[p_id] = []
                                             self._pollutants[p_id].append(new_obj)
 
-                                            print("Pollutant: {}".format(p.get("Id")))
-                                            print("     new_obj: {}".format(new_obj))
+                                            # print("Pollutant: {}".format(p.get("Id")))
+                                            # print("     new_obj: {}".format(new_obj))
 
     def get_for_pollutant(self, pollutant_id, slope=None):
         if pollutant_id not in self._pollutants:
             raise ValueError("Pollutant ID not in list of pollutations to search for..")
 
-        print("== POLLUTANT_ID = {}".format(pollutant_id))
+        log.debug("== POLLUTANT_ID = {}".format(pollutant_id))
 
         pollutant = None
         if len(self._pollutants[pollutant_id]) > 1:
             positive_slopes = [0, 0.02, 0.04, 0.06]
             negative_slopes = [-0.06, -0.04, -0.02, 0]
-            # print("Slope: {}".format(slope))
 
             # Multiple items in list, meaning we have 
             # various slope values
             x = [x for x in self._pollutants[pollutant_id] if x['slope'] == slope]
             if any(x):
-                print("FOUND MATCH: {}".format(slope))
+                log.debug("FOUND MATCH: {}".format(slope))
                 pollutant = x[0]
-                print("      pollutant: {}".format(pollutant))
+                log.debug("      pollutant: {}".format(pollutant))
             else:
                 # No match was found. Need to Extrapolate / Interpolate the 
                 # emission value
-                print("NO MATCH: {}".format(slope))
+                log.debug("NO MATCH: {}".format(slope))
                 slopes_for_pollutant = []
                 if slope > 0.0:
                     tmp_pollutants = [x for x in self._pollutants[pollutant_id] if x['slope'] in positive_slopes]
                     slopes_for_pollutant = map(EmissionsJsonParser.calculate, tmp_pollutants)
                     extrapolate = Extrapolate(positive_slopes, slopes_for_pollutant)
                     tmp = extrapolate[slope]
-                    print("Extrapolated value: {}".format(tmp))
+                    log.debug("Extrapolated value: {}".format(tmp))
                     return tmp
 
                 else:
@@ -284,13 +283,13 @@ class EmissionsJsonParser:
                     slopes_for_pollutant = map(EmissionsJsonParser.calculate, tmp_pollutants)
                     interpolate = Interpolate(negative_slopes, slopes_for_pollutant)
                     tmp = interpolate[slope]
-                    print("Interpolated value: {}".format(tmp))
+                    log.debug("Interpolated value: {}".format(tmp))
                     return tmp
 
         else:
             pollutant = self._pollutants[pollutant_id][0]
         tmp = EmissionsJsonParser.calculate(pollutant)
-        print("Regular value: {}".format(tmp))
+        log.debug("Regular value: {}".format(tmp))
         return tmp
 
     @staticmethod

@@ -150,8 +150,8 @@ class Planner:
         if pollutant_type not in self._pollutants:
             self._pollutants[pollutant_type] = None
         else:
-            print("warning: pollutant already added..")
-        print("self._pollutants = {}".format(self._pollutants))
+            log.debug("warning: pollutant already added..")
+        log.debug("self._pollutants = {}".format(self._pollutants))
 
     @property
     def coordinates(self):
@@ -180,14 +180,14 @@ class Planner:
         socket.setdefaulttimeout(30)
         try:
             url = Planner.build_url(self._vehicle, self.coordinates)
-            print("Calling: {}".format(url))
-            print("coordinates: {}".format(self.coordinates))
+            log.debug("Calling: {}".format(url))
+            log.debug("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
             self._json_data = json.loads(response.read())
             if 'messages' in self._json_data:
                 raise RouteError("")
         except IOError as err:
-            print("ioerror: {}".format(err))
+            log.debug("ioerror: {}".format(err))
             self._json_data = {}
 
     @staticmethod

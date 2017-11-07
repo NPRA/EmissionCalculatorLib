@@ -50,8 +50,47 @@ class Car(Vehicle):
         subsegment_id: Small
         subsegment_id: Medium
         subsegment_id: Large-SUV-Executive
-
     """
+    # type = [{
+    #     'Mini': [{
+    #         "Petrol": ['Euro 4', 'Euro 5','Euro 6', 'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
+    #     }]
+    #     },
+    #     {
+    #     'Small': ['Conventional',
+    #               'PRE ECE',
+    #               'ECE 15/00-01',
+    #               'ECE 15/02',
+    #               'ECE 15/03',
+    #               'ECE 15/04',
+    #               'Improved Conventional',
+    #               'Open Loop',
+    #               'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
+    #               'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
+    #     },
+    #     {
+    #     'Medium': ['PRE ECE',
+    #                'ECE 15/00-01',
+    #                'ECE 15/02',
+    #                'ECE 15/03',
+    #                'ECE 15/04',
+    #                'Improved Conventional',
+    #                'Open Loop',
+    #                'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
+    #                'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
+    #     },
+    #     {
+    #     'Large-SUV-Executive':['Conventional',
+    #                            'PRE ECE',
+    #                            'ECE 15/00-01',
+    #                            'ECE 15/02',
+    #                            'ECE 15/03',
+    #                            'ECE 15/04',
+    #                            'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
+    #                            'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
+    #     }
+    # ]
+
     def __init__(self, fuel_type, subsegment='Small', euro_std='Euro 4', mode=''):
         super(Car, self).__init__(VehicleTypes.CAR, fuel_type, subsegment, euro_std)
 
@@ -74,8 +113,8 @@ class Bus(Vehicle):
     subsegment_id: Coaches Standard <=18 t
     subsegment_id: Coaches Articulated >18 t
     """
-    def __init__(self, fuel_type, subsegment='Conventional', euro_std='Euro I', mode=''):
-        super(Bus, self).__init__(VehicleTypes.BUS, fuel_type, subsegment, euro_std)
+    def __init__(self, fuel_type, subsegment='Conventional', euro_std='Euro I', mode='', load=0.0):
+        super(Bus, self).__init__(VehicleTypes.BUS, fuel_type, subsegment, euro_std, mode, load)
 
 
 class Truck(Vehicle):

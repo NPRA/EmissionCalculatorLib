@@ -24,230 +24,185 @@ Session = sessionmaker(bind=db_engine)
 session = Session()
 
 
-# class CategoryFuelMap(Base):
-#     __tablename__ = 'category_fuel_map'
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     category_id = Column(Integer, ForeignKey('category.id'))
-#     fuel_id = Column(Integer, ForeignKey('fuel.id'))
+class MapCategoryFuel(Base):
+    __tablename__ = 'MAPCATEGORYFUEL'
+    __table_args__ = (
+        Index('MAPCATEGORYFUEL_INDEX', 'IDFUEL', 'IDCATEGORY'),
+    )
 
+    IDCATEGORY = Column(Integer, ForeignKey('CATEGORY.ID'), primary_key=True, nullable=False)
+    IDFUEL = Column(Integer, ForeignKey('FUEL.ID'), primary_key=True, nullable=False)
 
-# class Category(Base):
-#     __tablename__ = 'category'
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     name = Column(String, nullable=False)
 
+class Category(Base):
+    __tablename__ = 'CATEGORY'
 
-# class Fuel(Base):
-#     __tablename__ = 'fuel'
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     name = Column(String, nullable=False)
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
+    fuels = relationship('Fuel',
+                         secondary="MAPCATEGORYFUEL",
+                         backref=backref('category'))
 
-# # Many-To-Many table
-# class Z1TYPEFUEL(Base):
-#     __tablename__ = 'Z_1TYPEFUEL'
-#     __table_args__ = (
-#         Index('Z_1TYPEFUEL_Z_3TYPEFUEL_INDEX', 'Z_3TYPEFUEL', 'Z_1TYPECATEGORY'),
-#     )
 
-#     # Z_1TYPECATEGORY = Column(Integer, primary_key=True, nullable=False)
-#     category_id = Column('Z_1TYPECATEGORY', Integer, ForeignKey('ZCATEGORY.Z_PK'), primary_key=True)
-#     # Z_3TYPEFUEL = Column(Integer, primary_key=True, nullable=False)
-#     fuel_type_id = Column('Z_3TYPEFUEL', Integer, ForeignKey('ZFUEL.Z_PK'), primary_key=True)
+class Fuel(Base):
+    __tablename__ = 'FUEL'
 
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-# class Category(Base):
-#     __tablename__ = 'ZCATEGORY'
+    categories = relationship('Category',
+                              secondary="MAPCATEGORYFUEL",
+                              backref=backref("fuel"))
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
 
-#     def fuels(self):
-#         return session.query(Fuel).filter(
-#             and_(
-#                 self.Z_PK == Z1TYPEFUEL.category_id,
-#                 Z1TYPEFUEL.fuel_type_id == Fuel.Z_PK)).all()
 
+class EUROSTD(Base):
+    __tablename__ = 'EUROSTD'
 
-# class Fuel(Base):
-#     __tablename__ = 'ZFUEL'
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
 
-#     def eurostds(self):
-#         pass
 
+class LOAD(Base):
+    __tablename__ = 'LOAD'
 
-# class Z2EUROSTDSEGMENT(Base):
-#     __tablename__ = 'Z_2EUROSTDSEGMENT'
-#     __table_args__ = (
-#         Index('Z_2EUROSTDSEGMENT_Z_9EUROSTDSEGMENT_INDEX', 'Z_9EUROSTDSEGMENT', 'Z_2TYPEEUROSTD'),
-#     )
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-#     Z_2TYPEEUROSTD = Column(Integer, primary_key=True, nullable=False)
-#     Z_9EUROSTDSEGMENT = Column(Integer, primary_key=True, nullable=False)
 
 
-# class EuroStandard(Base):
-#     __tablename__ = 'ZEUROSTD'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPEUROSTDPOLLUTANT(Base):
+    __tablename__ = 'MAPEUROSTDPOLLUTANT'
+    __table_args__ = (
+        Index('MAPEUROSTDPOLLUTANT_INDEX', 'IDEUROSTD', 'IDPOLLUTANT'),
+    )
 
+    IDPOLLUTANT = Column(Integer, primary_key=True, nullable=False)
+    IDEUROSTD = Column(Integer, primary_key=True, nullable=False)
 
-# class Load(Base):
-#     __tablename__ = 'ZLOAD'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPFUELSEGMENT(Base):
+    __tablename__ = 'MAPFUELSEGMENT'
+    __table_args__ = (
+        Index('MAPFUELSEGMENT_INDEX', 'IDFUEL', 'IDSEGMENT'),
+    )
 
+    IDSEGMENT = Column(Integer, primary_key=True, nullable=False)
+    IDFUEL = Column(Integer, primary_key=True, nullable=False)
 
-# class Mode(Base):
-#     __tablename__ = 'ZMODE'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPLOADPARAMETER(Base):
+    __tablename__ = 'MAPLOADPARAMETERS'
+    __table_args__ = (
+        Index('MAPLOADPARAMETERS_INDEX', 'IDLOAD', 'IDPARAMETERS'),
+    )
 
+    IDPARAMETERS = Column(Integer, primary_key=True, nullable=False)
+    IDLOAD = Column(Integer, primary_key=True, nullable=False)
 
-# class Parameter(Base):
-#     __tablename__ = 'ZPARAMETERS'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     ZALPHA = Column(Float)
-#     ZBETA = Column(Float)
-#     ZDELTA = Column(Float)
-#     ZEPSILON = Column(Float)
-#     ZGAMMA = Column(Float)
-#     ZHTA = Column(Float)
-#     ZMAXSPEED = Column(Float)
-#     ZMINSPEED = Column(Float)
-#     ZREDUCTIONFACTOR = Column(Float)
-#     ZSPEED = Column(Float)
-#     ZZITA = Column(Float)
-#     parameter_id = Column('ZID', String)
+class MAPMODESLOPE(Base):
+    __tablename__ = 'MAPMODESLOPE'
+    __table_args__ = (
+        Index('MAPMODESLOPE_INDEX', 'IDMODE', 'IDSLOPE'),
+    )
 
+    IDSLOPE = Column(Integer, primary_key=True, nullable=False)
+    IDMODE = Column(Integer, primary_key=True, nullable=False)
 
-# class Pollutant(Base):
-#     __tablename__ = 'ZPOLLUTANT'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPPOLLUTANTMODE(Base):
+    __tablename__ = 'MAPPOLLUTANTMODE'
+    __table_args__ = (
+        Index('MAPPOLLUTANTMODE_INDEX', 'IDMODE', 'IDPOLLUTANT'),
+    )
 
+    IDPOLLUTANT = Column(Integer, primary_key=True, nullable=False)
+    IDMODE = Column(Integer, primary_key=True, nullable=False)
 
-# class RoadSlope(Base):
-#     __tablename__ = 'ZROADSLOPE'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPSEGMENTEUROSTD(Base):
+    __tablename__ = 'MAPSEGMENTEUROSTD'
+    __table_args__ = (
+        Index('MAPSEGMENTEUROSTD_INDEX', 'IDEUROSTD', 'IDSEGMENT'),
+    )
 
+    IDSEGMENT = Column(Integer, primary_key=True, nullable=False)
+    IDEUROSTD = Column(Integer, primary_key=True, nullable=False)
 
-# class Segment(Base):
-#     __tablename__ = 'ZSEGMENT'
 
-#     Z_PK = Column(Integer, primary_key=True)
-#     Z_ENT = Column(Integer)
-#     Z_OPT = Column(Integer)
-#     name = Column('ZID', String)
+class MAPSLOPELOAD(Base):
+    __tablename__ = 'MAPSLOPELOAD'
+    __table_args__ = (
+        Index('MAPSLOPELOAD_INDEX', 'IDLOAD', 'IDSLOPE'),
+    )
 
+    IDSLOPE = Column(Integer, primary_key=True, nullable=False)
+    IDLOAD = Column(Integer, primary_key=True, nullable=False)
 
-# ## Many-To-Many relations described below here
 
+class MODE(Base):
+    __tablename__ = 'MODE'
 
-# class Z2TYPEPOLLUTANT(Base):
-#     __tablename__ = 'Z_2TYPEPOLLUTANT'
-#     __table_args__ = (
-#         Index('Z_2TYPEPOLLUTANT_Z_7TYPEPOLLUTANT_INDEX', 'Z_7TYPEPOLLUTANT', 'Z_2POLLUTANTEUROSTD'),
-#     )
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-#     Z_2POLLUTANTEUROSTD = Column(Integer, primary_key=True, nullable=False)
-#     Z_7TYPEPOLLUTANT = Column(Integer, primary_key=True, nullable=False)
 
+class PARAMETER(Base):
+    __tablename__ = 'PARAMETERS'
 
-# class Z3TYPESEGMENT(Base):
-#     __tablename__ = 'Z_3TYPESEGMENT'
-#     __table_args__ = (
-#         Index('Z_3TYPESEGMENT_Z_9TYPESEGMENT_INDEX', 'Z_9TYPESEGMENT', 'Z_3SEGMENTFUEL'),
-#     )
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    ALPHA = Column(Float)
+    BETA = Column(Float)
+    DELTA = Column(Float)
+    EPSILON = Column(Float)
+    GAMMA = Column(Float)
+    HTA = Column(Float)
+    MAXSPEED = Column(Float)
+    MINSPEED = Column(Float)
+    REDUCTIONFACTOR = Column(Float)
+    SPEED = Column(Float)
+    ZITA = Column(Float)
+    NAME = Column(String)
 
-#     Z_3SEGMENTFUEL = Column(Integer, primary_key=True, nullable=False)
-#     Z_9TYPESEGMENT = Column(Integer, primary_key=True, nullable=False)
 
+class POLLUTANT(Base):
+    __tablename__ = 'POLLUTANT'
 
-# class Z4LOADSLOPE(Base):
-#     __tablename__ = 'Z_4LOADSLOPE'
-#     __table_args__ = (
-#         Index('Z_4LOADSLOPE_Z_8LOADSLOPE_INDEX', 'Z_8LOADSLOPE', 'Z_4TYPELOAD1'),
-#     )
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-#     Z_4TYPELOAD1 = Column(Integer, primary_key=True, nullable=False)
-#     Z_8LOADSLOPE = Column(Integer, primary_key=True, nullable=False)
 
+class PRIMARYKEY(Base):
+    __tablename__ = 'PRIMARYKEY'
 
-# class Z4PARAMETER(Base):
-#     __tablename__ = 'Z_4PARAMETERS'
-#     __table_args__ = (
-#         Index('Z_4PARAMETERS_Z_6PARAMETERS_INDEX', 'Z_6PARAMETERS', 'Z_4TYPELOAD'),
-#     )
+    ENT = Column(Integer, primary_key=True)
+    NAME = Column(String)
+    SUPER = Column(Integer)
+    MAX = Column(Integer)
 
-#     Z_4TYPELOAD = Column(Integer, primary_key=True, nullable=False)
-#     Z_6PARAMETERS = Column(Integer, primary_key=True, nullable=False)
 
+class ROADSLOPE(Base):
+    __tablename__ = 'ROADSLOPE'
 
-# class Z5MODEPOLLUTANT(Base):
-#     __tablename__ = 'Z_5MODEPOLLUTANT'
-#     __table_args__ = (
-#         Index('Z_5MODEPOLLUTANT_Z_7MODEPOLLUTANT_INDEX', 'Z_7MODEPOLLUTANT', 'Z_5TYPEMODE'),
-#     )
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)
 
-#     Z_5TYPEMODE = Column(Integer, primary_key=True, nullable=False)
-#     Z_7MODEPOLLUTANT = Column(Integer, primary_key=True, nullable=False)
 
+class SEGMENT(Base):
+    __tablename__ = 'SEGMENT'
 
-# class Z5TYPESLOPE(Base):
-#     __tablename__ = 'Z_5TYPESLOPE'
-#     __table_args__ = (
-#         Index('Z_5TYPESLOPE_Z_8TYPESLOPE_INDEX', 'Z_8TYPESLOPE', 'Z_5SLOPEMODE'),
-#     )
-
-#     Z_5SLOPEMODE = Column(Integer, primary_key=True, nullable=False)
-#     Z_8TYPESLOPE = Column(Integer, primary_key=True, nullable=False)
-
-
-# # class ZMETADATUM(Base):
-# #    __tablename__ = 'Z_METADATA'
-# #
-# #    Z_VERSION = Column(Integer, primary_key=True)
-# #    Z_UUID = Column(Text(255))
-# #    Z_PLIST = Column(LargeBinary)
-# #
-# #
-# # t_Z_MODELCACHE = Table(
-# #    'Z_MODELCACHE', metadata,
-# #    Column('Z_CONTENT', LargeBinary)
-# # )
-
-
-# class ZPRIMARYKEY(Base):
-#     __tablename__ = 'Z_PRIMARYKEY'
-
-#     Z_ENT = Column(Integer, primary_key=True)
-#     Z_NAME = Column(String)
-#     Z_SUPER = Column(Integer)
-#     Z_MAX = Column(Integer)
+    ID = Column(Integer, primary_key=True)
+    ENT = Column(Integer)
+    NAME = Column(String)

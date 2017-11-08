@@ -14,3 +14,5 @@ from .__version__ import  __version__
 
 __author__ = "NPRA - Norwegian Public Roads Administration"
 
+from .models import session
+from . import models

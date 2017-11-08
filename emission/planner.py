@@ -17,7 +17,7 @@ def enum(**named_values):
     return type('Enum', (), named_values)
 
 
-# List of possible pollutions
+# List of possible pollutant types
 PollutantTypes = enum(
     CH4='CH4',
     CO='CO',
@@ -31,7 +31,7 @@ ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService/"
 
 
 class Route:
-    """Represent a route object from NVDB RoutingService"""
+    """Represent a route object from the NVDB RoutingService"""
 
     def __init__(self, distance, minutes, path):
         self.distance = distance
@@ -49,7 +49,7 @@ class Route:
         return "{}:{}".format(hours, minutes)
 
     def velocity(self):
-        """n/a
+        """Calculate the velocity
         """
         total_time = self.minutes * 60
         return (self.distance / total_time) * 3.6
@@ -68,9 +68,6 @@ class Route:
         return total
 
     def __repl__(self):
-        # emissions = ""
-        # for p in self.pollutants:
-        #     emissions += "{}={} ".format(p, self.pollutants[p])
         fmt = "Route(distance={}, minutes={})"
         return fmt.format(self.distance, self.minutes)
 
@@ -267,33 +264,3 @@ class Planner:
 
         self._get_routes()
         self._calculate_emissions()
-        log.debug("Done! Loop over '.routes'")
-
-        # log.debug("Routes: {}".format(self.routes))
-        log.debug("Routes")
-        for r in self.routes:
-            log.debug(">> {}".format(r))
-            for p in self._pollutants.keys():
-                log.debug("     pollutant: {} -> {}".format(p, r.total_emission(p)))
-
-        self.routes.sort()
-        log.debug("After sorted..:")
-        for r in self.routes:
-            log.debug(">> {}".format(r))
-
-        sorted_after_NOx = sorted(self.routes, key=lambda x: x.total_emission('NOx'))
-        log.debug("Sorted after NOx..:")
-        for r in sorted_after_NOx:
-            log.debug(">> {} NOx: {}".format(r, r.total_emission('NOx')))
-
-        sorted_after_CO = sorted(self.routes, key=lambda x: x.total_emission('CO'))
-        log.debug("Sorted after CO")
-        for r in sorted_after_CO:
-            log.debug(">> {} CO: {}".format(r, r.total_emission('CO')))
-
-        # TODO:
-        # 1. Add sorting capabilities for the Route object
-        # 2. Add pretty printing of each Route
-        # 3. Sum up total emission per route
-        # 4. Use both time and emission to sort the routes
-        # 5. Create more example codes to highlight the flow

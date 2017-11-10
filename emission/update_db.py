@@ -71,8 +71,7 @@ class Parser:
         parameter.mode = mode
         parameter.pollutant = pollutant
 
-        #s.add(parameter)
-        #s.commit()
+        # temp store for bulk insertion later
         self._parameters.append(parameter)
 
     def _parse_data(self):
@@ -105,7 +104,6 @@ class Parser:
                             slopes = m.get("Slope")
                             for s in slopes:
                                 slope_id = s.get("Id")
-                                # log.debug("slope_id: {}".format(slope_id.encode("utf-8")))
 
                                 loads = s.get("Load")
                                 for l in loads:
@@ -114,9 +112,6 @@ class Parser:
                                     pollutants = l.get("Pollutant")
                                     for p in pollutants:
                                         p_id = p.get("Id")
-
-                                        # print("cat: {}, fuel: {}, segment: {}, eurostd: {}, mode: {}, slope: {}, load: {}, pollutant: {}".format(
-                                        #     cat_id, fuel_id, subsegment_id, es_id, m_id, slope_id, l_id, p))
 
                                         parm = {
                                             "cat": cat_id,
@@ -129,7 +124,7 @@ class Parser:
                                         }
                                         self.add(parm)
 
-        print("bulk inserting")
+        print("bulk inserting {} parameters".format(len(self._parameters)))
         models.session.add_all(self._parameters)
         models.session.flush()
         models.session.commit()

@@ -1,10 +1,12 @@
 # coding: utf-8
+from __future__ import unicode_literals
+import sys
+import os
+
 from sqlalchemy import Column, Float, Index, Integer, LargeBinary, String, Table, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, and_, or_
 from sqlalchemy.orm import sessionmaker, backref, relationship
-import sys
-import os
 
 # Generate the correct path for the sqlite file
 current_path = os.path.dirname(sys.modules[__name__].__file__)
@@ -24,39 +26,16 @@ Session = sessionmaker(bind=db_engine)
 session = Session()
 
 
-class MapCategoryFuel(Base):
-    __tablename__ = 'MAPCATEGORYFUEL'
-    __table_args__ = (
-        Index('MAPCATEGORYFUEL_INDEX', 'IDFUEL', 'IDCATEGORY'),
-    )
-
-    IDCATEGORY = Column(Integer, ForeignKey('CATEGORY.ID'), primary_key=True, nullable=False)
-    IDFUEL = Column(Integer, ForeignKey('FUEL.ID'), primary_key=True, nullable=False)
-
-
 class Category(Base):
     __tablename__ = 'CATEGORY'
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    fuels = relationship('Fuel',
-                         secondary='MAPCATEGORYFUEL',
-                         backref=backref('categories'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('category'))
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapFuelSegment(Base):
-    __tablename__ = 'MAPFUELSEGMENT'
-    __table_args__ = (
-        Index('MAPFUELSEGMENT_INDEX', 'IDFUEL', 'IDSEGMENT'),
-    )
-
-    IDSEGMENT = Column(Integer, ForeignKey('SEGMENT.ID'), primary_key=True, nullable=False)
-    IDFUEL = Column(Integer, ForeignKey('FUEL.ID'), primary_key=True, nullable=False)
 
 
 class Fuel(Base):
@@ -64,28 +43,11 @@ class Fuel(Base):
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # categories = relationship('Category',
-    #                           secondary='MAPCATEGORYFUEL',
-    #                           backref=backref('fuel'))
-
-    segments = relationship('Segment',
-                            secondary='MAPFUELSEGMENT',
-                            backref=backref('fuels'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('fuel'))
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapSegmentEuroStd(Base):
-    __tablename__ = 'MAPSEGMENTEUROSTD'
-    __table_args__ = (
-        Index('MAPSEGMENTEUROSTD_INDEX', 'IDEUROSTD', 'IDSEGMENT'),
-    )
-
-    IDSEGMENT = Column(Integer, ForeignKey('SEGMENT.ID'), primary_key=True, nullable=False)
-    IDEUROSTD = Column(Integer, ForeignKey('EUROSTD.ID'), primary_key=True, nullable=False)
 
 
 class Segment(Base):
@@ -93,18 +55,11 @@ class Segment(Base):
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # fuels = relationship('Fuel',
-    #                      secondary='MAPFUELSEGMENT',
-    #                      backref=backref('fuels'))
-
-    eurostds = relationship('EuroStd',
-                            secondary='MAPSEGMENTEUROSTD',
-                            backref=backref('segments'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('segment'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name.encode('utf-8'))
+        return '{}(name="{}")'.format(self.__class__.__name__, str(self.name, "utf-8"))
 
 
 class EuroStd(Base):
@@ -112,28 +67,11 @@ class EuroStd(Base):
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # segments = relationship('Segment',
-    #                         secondary='MAPSEGMENTEUROSTD',
-    #                         backref=backref('segments'))
-
-    pollutants = relationship('Pollutant',
-                              secondary='MAPEUROSTDPOLLUTANT',
-                              backref=backref('eurostds'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('eurostd'))
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapEuroStdPollutant(Base):
-    __tablename__ = 'MAPEUROSTDPOLLUTANT'
-    __table_args__ = (
-        Index('MAPEUROSTDPOLLUTANT_INDEX', 'IDEUROSTD', 'IDPOLLUTANT'),
-    )
-
-    IDPOLLUTANT = Column(Integer, ForeignKey('POLLUTANT.ID'), primary_key=True, nullable=False)
-    IDEUROSTD = Column(Integer, ForeignKey('EUROSTD.ID'), primary_key=True, nullable=False)
 
 
 class Pollutant(Base):
@@ -141,14 +79,8 @@ class Pollutant(Base):
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # eurostds = relationship('EuroStd',
-    #                         secondary='MAPEUROSTDPOLLUTANT',
-    #                         backref=backref('eurostds'))
-    modes = relationship('Mode',
-                         secondary='MAPPOLLUTANTMODE',
-                         backref=backref('pollutants'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('pollutant'))
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
@@ -159,96 +91,15 @@ class Mode(Base):
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # pollutants = relationship('Pollutant',
-    #                           secondary='MAPPOLLUTANTMODE',
-    #                           backref=backref('pollutant'))
-
-    slopes = relationship('RoadSlope',
-                          secondary='MAPMODESLOPE',
-                          backref=backref('modes'))
+    name = Column('NAME', String, unique=True)
+    parameter = relationship('Parameter', backref=backref('mode'))
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapPollutantMode(Base):
-    __tablename__ = 'MAPPOLLUTANTMODE'
-    __table_args__ = (
-        Index('MAPPOLLUTANTMODE_INDEX', 'IDMODE', 'IDPOLLUTANT'),
-    )
-
-    IDPOLLUTANT = Column(Integer, ForeignKey('POLLUTANT.ID'), primary_key=True, nullable=False)
-    IDMODE = Column(Integer, ForeignKey('MODE.ID'), primary_key=True, nullable=False)
-
-
-class RoadSlope(Base):
-    __tablename__ = 'ROADSLOPE'
-
-    ID = Column(Integer, primary_key=True)
-    ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    # modes = relationship('Mode',
-    #                      secondary='MAPMODESLOPE',
-    #                      backref=backref('mode'))
-    loads = relationship('Load',
-                         secondary='MAPSLOPELOAD',
-                         backref=backref('slopes'))
-
-    def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapModeSlope(Base):
-    __tablename__ = 'MAPMODESLOPE'
-    __table_args__ = (
-        Index('MAPMODESLOPE_INDEX', 'IDMODE', 'IDSLOPE'),
-    )
-
-    IDSLOPE = Column(Integer, ForeignKey('ROADSLOPE.ID'), primary_key=True, nullable=False)
-    IDMODE = Column(Integer, ForeignKey('MODE.ID'), primary_key=True, nullable=False)
-
-
-class Load(Base):
-    __tablename__ = 'LOAD'
-
-    ID = Column(Integer, primary_key=True)
-    ENT = Column(Integer)
-    name = Column('NAME', String)
-
-    parameters = relationship('Parameter',
-                          secondary='MAPLOADPARAMETERS',
-                          backref=backref('loads'))
-
-    def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class MapSlopeLoad(Base):
-    __tablename__ = 'MAPSLOPELOAD'
-    __table_args__ = (
-        Index('MAPSLOPELOAD_INDEX', 'IDLOAD', 'IDSLOPE'),
-    )
-
-    IDSLOPE = Column(Integer, ForeignKey('ROADSLOPE.ID'), primary_key=True, nullable=False)
-    IDLOAD = Column(Integer, ForeignKey('LOAD.ID'), primary_key=True, nullable=False)
-
-
-
-class MapLoadParameter(Base):
-    __tablename__ = 'MAPLOADPARAMETERS'
-    __table_args__ = (
-        Index('MAPLOADPARAMETERS_INDEX', 'IDLOAD', 'IDPARAMETERS'),
-    )
-
-    IDPARAMETERS = Column(Integer, ForeignKey('PARAMETERS.ID'), primary_key=True, nullable=False)
-    IDLOAD = Column(Integer, ForeignKey('LOAD.ID'), primary_key=True, nullable=False)
 
 
 class Parameter(Base):
-    __tablename__ = 'PARAMETERS'
+    __tablename__ = 'Parameters'
 
     ID = Column(Integer, primary_key=True)
     ENT = Column(Integer)
@@ -263,21 +114,16 @@ class Parameter(Base):
     REDUCTIONFACTOR = Column(Float)
     SPEED = Column(Float)
     ZITA = Column(Float)
-    name = Column('Name', String)
+
+    slope = Column(Float, nullable=True)
+    load = Column(Float, nullable=True)
+
+    category_id = Column(Integer, ForeignKey('CATEGORY.ID'))
+    fuel_id = Column(Integer, ForeignKey('FUEL.ID'))
+    segment_id = Column(Integer, ForeignKey('SEGMENT.ID'))
+    euro_std_id = Column(Integer, ForeignKey('EUROSTD.ID'))
+    mode_id = Column(Integer, ForeignKey('MODE.ID'))
+    pollutant_id = Column(Integer, ForeignKey('POLLUTANT.ID'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class PRIMARYKEY(Base):
-    """This table / model is not needed.
-    """
-    __tablename__ = 'PRIMARYKEY'
-
-    ENT = Column(Integer, primary_key=True)
-    NAME = Column(String)
-    SUPER = Column(Integer)
-    MAX = Column(Integer)
-
-
-
+        return '{}(id="{}")'.format(self.__class__.__name__, self.ID)

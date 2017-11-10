@@ -16,3 +16,4 @@ __author__ = "NPRA - Norwegian Public Roads Administration"
 
 from .models import session
 from . import models
+from . import update_db as update

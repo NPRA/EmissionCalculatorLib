@@ -104,7 +104,7 @@ class Segment(Base):
                             backref=backref('segments'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name.encode('utf-8'))
 
 
 class EuroStd(Base):

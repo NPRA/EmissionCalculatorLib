@@ -26,7 +26,7 @@ Session = sessionmaker(bind=db_engine)
 session = Session()
 
 
-def filter(**items):
+def filter_parms(**items):
     """
     # To get all segment for 'petrol truck'
     filtered_parameters = emission.models.filter(cat=truck, fuel=fuel_petrol)

@@ -66,8 +66,8 @@ class Category(Base):
     def fuels(self):
         """Find all valid fuel types for this Category vehicle"""
         parm = self.parameter
-        truck_fuels = set(x.fuel for x in parm)
-        return list(truck_fuels)
+        vehicle_fuels = set(x.fuel for x in parm)
+        return vehicle_fuels
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
@@ -80,6 +80,11 @@ class Fuel(Base):
     ENT = Column(Integer)
     name = Column('NAME', String, unique=True)
     parameter = relationship('Parameter', backref=backref('fuel'))
+
+    def segments(self):
+        param = self.parameter
+        vehicle_segments = set(x.segment for x in param)
+        return vehicle_segments
 
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)

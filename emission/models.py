@@ -34,6 +34,12 @@ class Category(Base):
     name = Column('NAME', String, unique=True)
     parameter = relationship('Parameter', backref=backref('category'))
 
+    def fuels(self):
+        """Find all valid fuel types for this Category vehicle"""
+        parm = self.parameter
+        truck_fuels = set(x.fuel for x in parm)
+        return truck_fuels
+
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 

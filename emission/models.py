@@ -26,6 +26,35 @@ Session = sessionmaker(bind=db_engine)
 session = Session()
 
 
+def filter(**items):
+    """
+    # To get all segment for 'petrol truck'
+    filtered_parameters = emission.models.filter(cat=truck, fuel=fuel_petrol)
+
+    set(x.segment for x in filtered_parameters)
+    """
+    parameters = []
+    if "cat" in items:
+        parameters = items.get("cat").parameter
+
+    if "fuel" in items:
+        parameters = list(filter(lambda x: x.fuel == items.get("fuel"), parameters))
+
+    if "segment" in items:
+        parameters = list(filter(lambda x: x.segment == items.get("segment"), parameters))
+
+    if "eurostd" in items:
+        parameters = list(filter(lambda x: x.eurostd == items.get("eurostd"), parameters))
+
+    if "pollutant" in items:
+        parameters = list(filter(lambda x: x.pollutant == items.get("pollutant"), parameters))
+
+    if "mode" in items:
+        parameters = list(filter(lambda x: x.mode == items.get("mode"), parameters))
+
+    return parameters
+
+
 class Category(Base):
     __tablename__ = 'CATEGORY'
 

@@ -27,7 +27,7 @@ PollutantTypes = enum(
     VOC='VOC')
 
 # URL to remote route webservice
-ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService/"
+ROUTE_URL_BASE = "https://www.vegvesen.no/ws/no/vegvesen/ruteplan/routingService_v1_0/routingService/"
 
 
 class Route:

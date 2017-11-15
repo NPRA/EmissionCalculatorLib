@@ -99,7 +99,7 @@ class Segment(Base):
     parameter = relationship('Parameter', backref=backref('segment'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, str(self.name, "utf-8"))
+        return '{}(name="{}")'.format(self.__class__.__name__, unicode(self.name))
 
 
 class EuroStd(Base):

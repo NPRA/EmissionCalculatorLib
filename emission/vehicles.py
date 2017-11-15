@@ -17,13 +17,15 @@ FuelTypes = enum(PETROL='Petrol',
 class Vehicle(object):
     """Base class for all vehicle types
     """
-    def __init__(self, vtype, fuel_type, segment, euro_std, mode='', load=-1.0):
+    def __init__(self, vtype, fuel_type, segment, euro_std, mode='', load=-1.0, height=2.0, length=5.0):
         self.type = vtype
         self.fuel_type = fuel_type
         self.segment = segment
         self.euro_std = euro_std
         self.mode = mode
         self.load = load
+        self.height = height
+        self.length = length
 
     @staticmethod
     def get_type_for_category(category_id):
@@ -40,8 +42,8 @@ class Vehicle(object):
 class LCategory(Vehicle):
     """Scooters, 2 and 3-wheels
     """
-    def __init__(self, fuel_type, subsegment='', euro_std='', mode=''):
-        super(LCategory, self).__init__(VehicleTypes.LCATEGORY, fuel_type, subsegment, euro_std)
+    def __init__(self, fuel_type=FuelTypes.PETROL, subsegment='', euro_std='', mode='', load=-1.0, height=1.5, length=2.5):
+        super(LCategory, self).__init__(VehicleTypes.LCATEGORY, fuel_type, subsegment, euro_std, mode, load, height, length)
 
 
 class Car(Vehicle):
@@ -51,48 +53,9 @@ class Car(Vehicle):
         subsegment_id: Medium
         subsegment_id: Large-SUV-Executive
     """
-    # type = [{
-    #     'Mini': [{
-    #         "Petrol": ['Euro 4', 'Euro 5','Euro 6', 'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
-    #     }]
-    #     },
-    #     {
-    #     'Small': ['Conventional',
-    #               'PRE ECE',
-    #               'ECE 15/00-01',
-    #               'ECE 15/02',
-    #               'ECE 15/03',
-    #               'ECE 15/04',
-    #               'Improved Conventional',
-    #               'Open Loop',
-    #               'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
-    #               'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
-    #     },
-    #     {
-    #     'Medium': ['PRE ECE',
-    #                'ECE 15/00-01',
-    #                'ECE 15/02',
-    #                'ECE 15/03',
-    #                'ECE 15/04',
-    #                'Improved Conventional',
-    #                'Open Loop',
-    #                'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
-    #                'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
-    #     },
-    #     {
-    #     'Large-SUV-Executive':['Conventional',
-    #                            'PRE ECE',
-    #                            'ECE 15/00-01',
-    #                            'ECE 15/02',
-    #                            'ECE 15/03',
-    #                            'ECE 15/04',
-    #                            'Euro 1', 'Euro 2', 'Euro 3', 'Euro 4', 'Euro 5',
-    #                            'Euro 6 up to 2016', 'Euro 6 2017-2019', 'Euro 6 2020+']
-    #     }
-    # ]
 
-    def __init__(self, fuel_type, subsegment='Small', euro_std='Euro 4', mode=''):
-        super(Car, self).__init__(VehicleTypes.CAR, fuel_type, subsegment, euro_std)
+    def __init__(self, fuel_type=FuelTypes.PETROL, subsegment='Small', euro_std='Euro 4', mode=''):
+        super(Car, self).__init__(VehicleTypes.CAR, fuel_type, subsegment, euro_std, mode)
 
 
 class Van(Vehicle):
@@ -101,8 +64,8 @@ class Van(Vehicle):
         subsegment_id: N1-II
         subsegment_id: N1-III
     """
-    def __init__(self, fuel_type, subsegment='N1-I', euro_std='Euro 4', mode=''):
-        super(Van, self).__init__(VehicleTypes.VAN, fuel_type, subsegment, euro_std)
+    def __init__(self, fuel_type=FuelTypes.DIESEL, subsegment='N1-I', euro_std='Euro 4', mode=''):
+        super(Van, self).__init__(VehicleTypes.VAN, fuel_type, subsegment, euro_std, mode)
 
 
 class Bus(Vehicle):
@@ -113,7 +76,7 @@ class Bus(Vehicle):
     subsegment_id: Coaches Standard <=18 t
     subsegment_id: Coaches Articulated >18 t
     """
-    def __init__(self, fuel_type, subsegment='Conventional', euro_std='Euro I', mode='', load=0.0):
+    def __init__(self, fuel_type=FuelTypes.DIESEL, subsegment='Conventional', euro_std='Euro I', mode='', load=0.0):
         super(Bus, self).__init__(VehicleTypes.BUS, fuel_type, subsegment, euro_std, mode, load)
 
 
@@ -134,5 +97,5 @@ class Truck(Vehicle):
     subsegment_id: Rigid 7.5 - 12 t
     subsegment_id: Rigid <=7.5 t
     """
-    def __init__(self, fuel_type, subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
+    def __init__(self, fuel_type=FuelTypes.DIESEL, subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
         super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, mode, load)

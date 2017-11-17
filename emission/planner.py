@@ -163,8 +163,8 @@ class Planner:
         load = vehicle.load if vehicle.load > -1.0 else 0
         params = {
             "format": format,
-            # "height": vehicle.height,
-            # "length": vehicle.length,
+            "height": vehicle.height,
+            "length": vehicle.length,
             "stops": coordinates,
             "load": load,
             "geometryformat": geometryformat,

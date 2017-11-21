@@ -33,12 +33,13 @@ ROUTE_URL_BASE = "https://www.vegvesen.no/ws/no/vegvesen/ruteplan/routingService
 class Route:
     """Represent a route object from the NVDB RoutingService"""
 
-    def __init__(self, distance, minutes, path):
+    def __init__(self, distance, minutes, path, id):
         self.distance = distance
         self.minutes = minutes
         self.path = path
         self.pollutants = {}
         self.distances = []
+        self.id = id
 
     def hours_and_minutes(self):
         """Return hours:minutes as a string
@@ -141,7 +142,7 @@ class Planner:
 
     def add_pollutant(self, pollutant_type):
         # validate input
-        if pollutant_type not in PollutantTypes.__dict__:
+        if pollutant_type not in PollutantTypes.__dict__.values():
             raise ValueError("pollutant_type needs to be one of the types defined in planner.PollutantTypes")
 
         if pollutant_type not in self._pollutants:
@@ -217,11 +218,11 @@ class Planner:
 
         # Create a "set" of Routes. The planner web service will
         # return 2-4 routes with different paths.
-        for r in self._json_data["routes"]["features"]:
+        for idx, r in enumerate(self._json_data["routes"]["features"]):
             attributes = r.get("attributes")
             route = Route(distance=attributes.get("Total_Meters"),
                           minutes=attributes.get("Total_Minutes"),
-                          path=r.get("geometry").get("paths")[0])
+                          path=r.get("geometry").get("paths")[0], id = idx)
             self.routes.add(route)
 
         log.debug("Nr of routes: {}".format(len(self.routes)))

@@ -181,12 +181,20 @@ class Planner:
             log.debug("Calling: {}".format(url))
             log.debug("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
-            self._json_data = json.loads(response.read())
+            data = response.read()
+            self._json_data = json.loads(data.decode("utf-8"))
             if 'messages' in self._json_data:
-                raise RouteError("")
+                raise RouteError("Missing 'messages' in returned JSON data.")
+
         except IOError as err:
             log.debug("ioerror: {}".format(err))
             self._json_data = {}
+            raise RouteError("IOError: {}".format(err))
+
+        except ValueError:
+            log.warning("Bad data from remote routing service: \n{}".format(data))
+            self._json_data = {}
+            raise RouteError("Bad data from remote routing service: \n{}".format(data))
 
     @staticmethod
     def _get_distance_2d(point1, point2):

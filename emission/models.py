@@ -77,6 +77,13 @@ class Category(Base):
         vehicle_fuels = set(x.fuel for x in parm)
         return vehicle_fuels
 
+    @classmethod
+    def get_for_type(class_, vehicle):
+        """Return query to find Category for a particular Vechicle type"""
+        Category = class_
+        found = session.query(Category).filter_by(name=vehicle.get_category_id()).first()
+        return found
+
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
@@ -94,6 +101,13 @@ class Fuel(Base):
         vehicle_segments = set(x.segment for x in param)
         return vehicle_segments
 
+    @classmethod
+    def get_for_type(class_, vehicle):
+        """Return query to find Fuel for a particluar Vehicle type"""
+        Fuel = class_
+        found = session.query(Fuel).filter_by(name=vehicle.fuel_type).first()
+        return found
+
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
@@ -107,7 +121,7 @@ class Segment(Base):
     parameter = relationship('Parameter', backref=backref('segment'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, unicode(self.name))
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
 class EuroStd(Base):

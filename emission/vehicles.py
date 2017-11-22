@@ -1,3 +1,5 @@
+import six
+
 def enum(**named_values):
     return type('Enum', (), named_values)
 
@@ -17,7 +19,16 @@ FuelTypes = enum(PETROL='Petrol',
 class Vehicle(object):
     """Base class for all vehicle types
     """
-    def __init__(self, vtype, fuel_type, segment, euro_std, mode='', load=-1.0, height=2.0, length=5.0):
+
+    mapping = {
+        'Passenger Cars': VehicleTypes.CAR,
+        'Light Commercial Vehicles': VehicleTypes.VAN,
+        'Heavy Duty Trucks': VehicleTypes.TRUCK,
+        'Buses': VehicleTypes.BUS,
+        'L-Category': VehicleTypes.LCATEGORY
+    }
+
+    def __init__(self, vtype, fuel_type, segment, euro_std, mode='', load=-1.0, height=2.0, length=5.0, slope=None):
         self.type = vtype
         self.fuel_type = fuel_type
         self.segment = segment
@@ -26,17 +37,16 @@ class Vehicle(object):
         self.load = load
         self.height = height
         self.length = length
+        self.slope = slope
 
     @staticmethod
     def get_type_for_category(category_id):
-        mapping = {
-            'Passenger Cars': VehicleTypes.CAR,
-            'Light Commercial Vehicles': VehicleTypes.VAN,
-            'Heavy Duty Trucks': VehicleTypes.TRUCK,
-            'Buses': VehicleTypes.BUS,
-            'L-Category': VehicleTypes.LCATEGORY
-        }
-        return mapping.get(category_id, None)
+        return Vehicle.mapping.get(category_id, None)
+
+    def get_category_id(self):
+        for cat_id, name in six.iteritems(self.mapping):
+            if name == self.type:
+                return cat_id
 
 
 class LCategory(Vehicle):
@@ -97,5 +107,5 @@ class Truck(Vehicle):
     subsegment_id: Rigid 7.5 - 12 t
     subsegment_id: Rigid <=7.5 t
     """
-    def __init__(self, fuel_type=FuelTypes.DIESEL, subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0):
-        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, mode, load)
+    def __init__(self, fuel_type=FuelTypes.DIESEL, subsegment='Articulated 14 - 20 t', euro_std='Euro I', mode='', load=0.0, slope=0.0):
+        super(Truck, self).__init__(VehicleTypes.TRUCK, fuel_type, subsegment, euro_std, mode=mode, load=load, slope=slope)

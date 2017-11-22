@@ -11,6 +11,7 @@ import math
 from . import vehicles, log
 from . import EmissionsJsonParser
 from .exceptions import RouteError
+from . import models
 
 
 def enum(**named_values):
@@ -108,8 +109,8 @@ class RouteSet:
     def __str__(self):
         return self.__repl__()
 
-    def sort(self, cmp=None, key=None, reverse=False):
-        self._lst.sort(cmp, key, reverse)
+    def sort(self, key=None, reverse=False):
+        self._lst.sort(key=key, reverse=reverse)
 
     def __hash__(self):
         return hash(self._lst)

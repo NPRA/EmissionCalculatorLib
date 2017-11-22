@@ -28,10 +28,18 @@ session = Session()
 
 def filter_parms(**items):
     """
-    # To get all segment for 'petrol truck'
-    filtered_parameters = emission.models.filter(cat=truck, fuel=fuel_petrol)
+    To get all segment for 'petrol truck'. Valid parameters:
+        cat=category
+        fuel=fuel
+        segment=segment
+        eurostd=eurostd
+        pollutant=pollutant
+        mode=mode
 
-    set(x.segment for x in filtered_parameters)
+    >>> truck = session.query(emission.models.Category).all()[2]
+    >>> fuel = list(truck.fuels())[0]
+    >>> filtered_parameters = emission.models.filter(cat=truck, fuel=fuel)
+    >>> set(x.segment for x in filtered_parameters)
     """
     parameters = []
     if "cat" in items:

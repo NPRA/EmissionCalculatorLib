@@ -229,9 +229,9 @@ class Planner:
         if not fuel:
             raise ValueError("Unable to find Fuel in database: name={}".format(self._vehicle.fuel_type))
 
-        segment = session.query(models.Segment).filter_by(name=self._vehicle.segment.encode()).first()
+        segment = session.query(models.Segment).filter_by(name=self._vehicle.segment).first()
         if not segment:
-            raise ValueError("Unable to find segment in database: name={}".format(self._vehicle.segment))
+            raise ValueError("Unable to find segment in database: name={}".format(str(self._vehicle.segment)))
 
         filter_parms = {
             "category": category,

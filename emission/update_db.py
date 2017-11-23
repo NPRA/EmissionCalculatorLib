@@ -91,7 +91,7 @@ class Parser:
 
                 subsegments = f.get("Subsegment")
                 for s in subsegments:
-                    subsegment_id = s.get("Id").encode("utf-8")
+                    subsegment_id = s.get("Id")
 
                     euro_standard = s.get("TEC_NAME")
                     for es in euro_standard:

@@ -120,6 +120,8 @@ class Parser:
                                             "eurostd": es_id,
                                             "mode": m_id,
                                             "pollutant": p_id,
+                                            "slope": slope_id,
+                                            "load": l_id,
                                             "parameters": p
                                         }
                                         self.add(parm)

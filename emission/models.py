@@ -28,10 +28,18 @@ session = Session()
 
 def filter_parms(**items):
     """
-    # To get all segment for 'petrol truck'
-    filtered_parameters = emission.models.filter(cat=truck, fuel=fuel_petrol)
+    To get all segment for 'petrol truck'. Valid parameters:
+        cat=category
+        fuel=fuel
+        segment=segment
+        eurostd=eurostd
+        pollutant=pollutant
+        mode=mode
 
-    set(x.segment for x in filtered_parameters)
+    >>> truck = session.query(emission.models.Category).all()[2]
+    >>> fuel = list(truck.fuels())[0]
+    >>> filtered_parameters = emission.models.filter(cat=truck, fuel=fuel)
+    >>> set(x.segment for x in filtered_parameters)
     """
     parameters = []
     if "cat" in items:
@@ -69,6 +77,13 @@ class Category(Base):
         vehicle_fuels = set(x.fuel for x in parm)
         return vehicle_fuels
 
+    @classmethod
+    def get_for_type(class_, vehicle):
+        """Return query to find Category for a particular Vechicle type"""
+        Category = class_
+        found = session.query(Category).filter_by(name=vehicle.get_category_id()).first()
+        return found
+
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
@@ -86,6 +101,13 @@ class Fuel(Base):
         vehicle_segments = set(x.segment for x in param)
         return vehicle_segments
 
+    @classmethod
+    def get_for_type(class_, vehicle):
+        """Return query to find Fuel for a particluar Vehicle type"""
+        Fuel = class_
+        found = session.query(Fuel).filter_by(name=vehicle.fuel_type).first()
+        return found
+
     def __repr__(self):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
@@ -99,7 +121,7 @@ class Segment(Base):
     parameter = relationship('Parameter', backref=backref('segment'))
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, unicode(self.name))
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
 class EuroStd(Base):
@@ -165,5 +187,23 @@ class Parameter(Base):
     mode_id = Column(Integer, ForeignKey('MODE.ID'))
     pollutant_id = Column(Integer, ForeignKey('POLLUTANT.ID'))
 
+    @classmethod
+    def by_vehicle(class_, vehicle):
+        Parameter = class_
+        cat = session.query(Category).filter_by(name=vehicle.get_category_id()).first()
+        fuel = session.query(Fuel).filter_by(name=vehicle.fuel_type).first()
+        query = session.query(Parameter).filter_by(category=cat)
+        return query
+
     def __repr__(self):
-        return '{}(id="{}")'.format(self.__class__.__name__, self.ID)
+        return '{}(id={}, pollutant={}, category={}, fuel={}, segment={}, euro_std={}, mode={}, load={}, slope={})'.format(
+            self.__class__.__name__,
+            self.ID,
+            self.pollutant.name,
+            self.category.name,
+            self.fuel.name,
+            self.segment.name,
+            self.eurostd.name,
+            self.mode.name,
+            self.load,
+            self.slope)

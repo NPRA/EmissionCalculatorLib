@@ -11,13 +11,14 @@ import math
 from . import vehicles, log
 from . import EmissionsJsonParser
 from .exceptions import RouteError
+from . import models
 
 
 def enum(**named_values):
     return type('Enum', (), named_values)
 
 
-# List of possible pollutions
+# List of possible pollutant types
 PollutantTypes = enum(
     CH4='CH4',
     CO='CO',
@@ -27,18 +28,19 @@ PollutantTypes = enum(
     VOC='VOC')
 
 # URL to remote route webservice
-ROUTE_URL_BASE = "http://multirit.triona.se/routingService_v1_0/routingService/"
+ROUTE_URL_BASE = "https://www.vegvesen.no/ws/no/vegvesen/ruteplan/routingService_v1_0/routingService/"
 
 
 class Route:
-    """Represent a route object from NVDB RoutingService"""
+    """Represent a route object from the NVDB RoutingService"""
 
-    def __init__(self, distance, minutes, path):
+    def __init__(self, distance, minutes, path, id):
         self.distance = distance
         self.minutes = minutes
         self.path = path
         self.pollutants = {}
         self.distances = []
+        self.id = id
 
     def hours_and_minutes(self):
         """Return hours:minutes as a string
@@ -49,7 +51,7 @@ class Route:
         return "{}:{}".format(hours, minutes)
 
     def velocity(self):
-        """n/a
+        """Calculate the velocity
         """
         total_time = self.minutes * 60
         return (self.distance / total_time) * 3.6
@@ -68,9 +70,6 @@ class Route:
         return total
 
     def __repl__(self):
-        # emissions = ""
-        # for p in self.pollutants:
-        #     emissions += "{}={} ".format(p, self.pollutants[p])
         fmt = "Route(distance={}, minutes={})"
         return fmt.format(self.distance, self.minutes)
 
@@ -111,8 +110,8 @@ class RouteSet:
     def __str__(self):
         return self.__repl__()
 
-    def sort(self, cmp=None, key=None, reverse=False):
-        self._lst.sort(cmp, key, reverse)
+    def sort(self, key=None, reverse=False):
+        self._lst.sort(key=key, reverse=reverse)
 
     def __hash__(self):
         return hash(self._lst)
@@ -144,7 +143,7 @@ class Planner:
 
     def add_pollutant(self, pollutant_type):
         # validate input
-        if pollutant_type not in PollutantTypes.__dict__:
+        if pollutant_type not in PollutantTypes.__dict__.values():
             raise ValueError("pollutant_type needs to be one of the types defined in planner.PollutantTypes")
 
         if pollutant_type not in self._pollutants:
@@ -166,8 +165,8 @@ class Planner:
         load = vehicle.load if vehicle.load > -1.0 else 0
         params = {
             "format": format,
-            # "height": vehicle.height,
-            # "length": vehicle.length,
+            "height": vehicle.height,
+            "length": vehicle.length,
             "stops": coordinates,
             "load": load,
             "geometryformat": geometryformat,
@@ -183,12 +182,20 @@ class Planner:
             log.debug("Calling: {}".format(url))
             log.debug("coordinates: {}".format(self.coordinates))
             response = urlopen(url)
-            self._json_data = json.loads(response.read())
+            data = response.read()
+            self._json_data = json.loads(data.decode("utf-8"))
             if 'messages' in self._json_data:
-                raise RouteError("")
+                raise RouteError("Missing 'messages' in returned JSON data.")
+
         except IOError as err:
             log.debug("ioerror: {}".format(err))
             self._json_data = {}
+            raise RouteError("IOError: {}".format(err))
+
+        except ValueError:
+            log.warning("Bad data from remote routing service: \n{}".format(data))
+            self._json_data = {}
+            raise RouteError("Bad data from remote routing service: \n{}".format(data))
 
     @staticmethod
     def _get_distance_2d(point1, point2):
@@ -208,8 +215,121 @@ class Planner:
             slope = math.degrees(math.asin((float(point2[2]) - float(point1[2])) / distance))
         return slope
 
+    def _get_pollutants_for_vehicle(self):
+        """Retrieve pollutions parameters for the vehicle provided
+        to the planner. Only include the pollutants provided in
+        'self._pollutants'
+        """
+        from . import session
+
+        category = models.Category.get_for_type(self._vehicle)
+        if not category:
+            raise ValueError("Unable to find Category for vehicle: {}".format(category))
+
+        fuel = session.query(models.Fuel).filter_by(name=self._vehicle.fuel_type).first()
+        if not fuel:
+            raise ValueError("Unable to find Fuel in database: name={}".format(self._vehicle.fuel_type))
+
+        segment = session.query(models.Segment).filter_by(name=self._vehicle.segment).first()
+        if not segment:
+            raise ValueError("Unable to find segment in database: name={}".format(str(self._vehicle.segment)))
+
+        filter_parms = {
+            "category": category,
+            "fuel": fuel,
+            "segment": segment
+        }
+
+        euro_std = session.query(models.EuroStd).filter_by(name=self._vehicle.euro_std).first()
+        if euro_std:
+            filter_parms.update({"eurostd": euro_std})
+
+        mode = session.query(models.Mode).filter_by(name=self._vehicle.mode).first()
+        if mode:
+            filter_parms.update({"mode": mode})
+
+        if self._vehicle.load > -1.0:
+            filter_parms.update({"load": self._vehicle.load})
+
+        # if self._vehicle.slope is not None:
+        #     filter_parms.update({"slope": self._vehicle.slope})
+
+        # Get Parameters based on the other items found above
+        params = session.query(models.Parameter).filter_by(**filter_parms)
+        #print(params)
+
+        count = params.count()
+        print("count: {}".format(count))
+
+        return params.all()
+
+    def get_emission(self, parameters, slope=None):
+        pollutant = None
+
+        if len(parameters) > 1:
+            # We have many parameters instances for a single pollutant.
+            # This means that we have multiple 'slopes' in our table.
+            # Need therefore to find slope or extrapolate/interpolate the value.
+            positive_slopes = [0, 0.02, 0.04, 0.06]
+            negative_slopes = [-0.06, -0.04, -0.02, 0]
+
+            x = [x for x in parameters if x.slope == slope]
+            if any(x):
+                pollutant = x[0]
+            else:
+                slopes_for_pollutant = []
+                if slope > 0.0:
+                    tmp_pollutants = [x for x in parameters if x.slope in positive_slopes]
+                    slopes_for_pollutant = map(Planner.calculate, tmp_pollutants)
+                    extrapolate = Extrapolate(positive_slopes, slopes_for_pollutant)
+                    tmp = extrapolate[slope]
+                    log.debug("Extrapolated value: {}".format(tmp))
+                    return tmp
+
+                else:
+                    tmp_pollutants = [x for x in parameters if x.slope in negative_slopes]
+                    slopes_for_pollutant = map(Planner.calculate, tmp_pollutants)
+                    interpolate = Interpolate(negative_slopes, slopes_for_pollutant)
+                    tmp = interpolate[slope]
+                    log.debug("Interpolated value: {}".format(tmp))
+                    return tmp
+        else:
+            pollutant = parameters[0]
+        tmp = Planner.calculate(pollutant)
+        log.debug("tmp: {}".format(tmp))
+        return tmp
+
+    @staticmethod
+    def calculate(parameter):
+        """Equation copied from the EU spreadsheet
+        """
+        alpha = parameter.ALPHA
+        beta = parameter.BETA
+        delta = parameter.DELTA
+        epsilon = parameter.EPSILON
+        gamma = parameter.GAMMA
+        hta = parameter.HTA
+        reduct_fact = parameter.REDUCTIONFACTOR
+        speed = parameter.SPEED
+        v_max = parameter.MAXSPEED
+        v_min = parameter.MINSPEED
+        zita = parameter.ZITA
+
+        """ ((alpha*speed^2) + (beta*speed) + gamma + (delta/speed))/((epsilon*speed^2) * (zita * speed + htz))"""
+        result = (alpha * math.pow(speed, 2)) + (beta * speed) + gamma + (delta / speed)
+        result /= (epsilon * math.pow(speed, 2)) + ((zita * speed) + hta)
+        result *= (1 - reduct_fact)
+        return result
+
     def _calculate_emissions(self):
-        self._emissionDb = EmissionsJsonParser(self._vehicle, self._pollutants)
+        """Calculate total emission from a route of x,y,z points based on a path between 
+        two points (A -> B). https://www.vegvesen.no/vegkart/vegkart/.
+
+        For a simple static emission calculation play with:
+            - self._get_pollutants_for_vehicle()
+            - Planner.calculate(parameter)
+        """
+        parameters = self._get_pollutants_for_vehicle()
 
         self.routes = RouteSet()
 
@@ -220,11 +340,11 @@ class Planner:
 
         # Create a "set" of Routes. The planner web service will
         # return 2-4 routes with different paths.
-        for r in self._json_data["routes"]["features"]:
+        for idx, r in enumerate(self._json_data["routes"]["features"]):
             attributes = r.get("attributes")
             route = Route(distance=attributes.get("Total_Meters"),
                           minutes=attributes.get("Total_Minutes"),
-                          path=r.get("geometry").get("paths")[0])
+                          path=r.get("geometry").get("paths")[0], id = idx)
             self.routes.add(route)
 
         log.debug("Nr of routes: {}".format(len(self.routes)))
@@ -249,7 +369,8 @@ class Planner:
 
                 # Calculate emission for each pollutants the user has asked for
                 for p in self._pollutants:
-                    calc_emission = self._emissionDb.get_for_pollutant(p, point_slope)
+                    parms = [x for x in parameters if x.pollutant.name.startswith(p)]
+                    calc_emission = self.get_emission(parms, point_slope)
                     route.add_pollutant(p, calc_emission)
 
                 prev = point
@@ -267,33 +388,3 @@ class Planner:
 
         self._get_routes()
         self._calculate_emissions()
-        log.debug("Done! Loop over '.routes'")
-
-        # log.debug("Routes: {}".format(self.routes))
-        log.debug("Routes")
-        for r in self.routes:
-            log.debug(">> {}".format(r))
-            for p in self._pollutants.keys():
-                log.debug("     pollutant: {} -> {}".format(p, r.total_emission(p)))
-
-        self.routes.sort()
-        log.debug("After sorted..:")
-        for r in self.routes:
-            log.debug(">> {}".format(r))
-
-        sorted_after_NOx = sorted(self.routes, key=lambda x: x.total_emission('NOx'))
-        log.debug("Sorted after NOx..:")
-        for r in sorted_after_NOx:
-            log.debug(">> {} NOx: {}".format(r, r.total_emission('NOx')))
-
-        sorted_after_CO = sorted(self.routes, key=lambda x: x.total_emission('CO'))
-        log.debug("Sorted after CO")
-        for r in sorted_after_CO:
-            log.debug(">> {} CO: {}".format(r, r.total_emission('CO')))
-
-        # TODO:
-        # 1. Add sorting capabilities for the Route object
-        # 2. Add pretty printing of each Route
-        # 3. Sum up total emission per route
-        # 4. Use both time and emission to sort the routes
-        # 5. Create more example codes to highlight the flow

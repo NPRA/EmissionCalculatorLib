@@ -6,7 +6,7 @@ import os
 from sqlalchemy import Column, Float, Index, Integer, LargeBinary, String, Table, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, and_, or_
-from sqlalchemy.orm import sessionmaker, backref, relationship
+from sqlalchemy.orm import sessionmaker, backref, relationship, scoped_session
 
 # Generate the correct path for the sqlite file
 current_path = os.path.dirname(sys.modules[__name__].__file__)
@@ -20,7 +20,7 @@ metadata = Base.metadata
 db_engine = create_engine('sqlite:///{}'.format(sqlite_full_path))
 
 # Create the 'Session' class binded with the db engine
-Session = sessionmaker(bind=db_engine)
+Session = scoped_session(sessionmaker(bind=db_engine))
 
 # Create a session instance
 session = Session()

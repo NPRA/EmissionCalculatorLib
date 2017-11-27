@@ -4,7 +4,14 @@
 .PHONY: doc
 
 default:
-	@echo "Use target: test, install, uninstall, upload or clean"
+	@echo "Targets:"
+	@echo " all:		test, bdist"
+	@echo " bdist:		make .whl file for distribution"
+	@echo " test:		run test suite"
+	@echo " upload:		upload wheel package to PyPI"
+	@echo " clean:		remove .pyc files, build, dist dirs"
+	@echo " install:	install develop build of this module (development)"
+	@echo " uninstall:	uninstall develop build of this module (development)"
 
 
 test:
@@ -23,6 +30,11 @@ uninstall:
 upload:
 	python setup.py publish
 
+bdist: build
+	python setup.py bdist_wheel
+
+build:
+	python setup.py build
 
 clean:
 	rm -rf build

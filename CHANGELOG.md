@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## 0.3 [2017-11-27]A
+
+## 0.3 [2017-11-27]
 ### Added
 - Major rewrite of the emission data included in this module. Went away from the JSON file and instead rewrote to use SQLite3 + sqlalchemy. Defined models for each table structure as well as util methods to properly lookup the correct emission for the vehicle choosen.
 

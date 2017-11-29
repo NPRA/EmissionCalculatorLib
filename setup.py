@@ -26,7 +26,9 @@ EMAIL = "asbjorn@fellinghaug.com"
 AUTHOR = """Juraj Cirbus <Juraj.Cirbus@norconsult.com>, Tomas Levin <tomas.levin@vegvesen.no>, Asbjørn Alexander Fellinghaug <asbjorn.fellinghaug@webstep.no>"""
 
 REQUIRED = [
-    'numpy'
+    'numpy',
+    'SQLAlchemy',
+    'six'
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))

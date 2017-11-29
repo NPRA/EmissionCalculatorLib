@@ -89,7 +89,7 @@ setup(
     packages=['emission'],
     install_requires=REQUIRED,
     package_data={
-        'emission': ['*.json.gz'],
+        'emission': ['*.json.gz', 'database.db'],
     },
     include_package_data=True,
     license='BSD',

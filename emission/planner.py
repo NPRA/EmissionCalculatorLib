@@ -251,16 +251,8 @@ class Planner:
         if self._vehicle.load > -1.0:
             filter_parms.update({"load": self._vehicle.load})
 
-        # if self._vehicle.slope is not None:
-        #     filter_parms.update({"slope": self._vehicle.slope})
-
         # Get Parameters based on the other items found above
         params = session.query(models.Parameter).filter_by(**filter_parms)
-        #print(params)
-
-        count = params.count()
-        print("count: {}".format(count))
-
         return params.all()
 
     def get_emission(self, parameters, slope=None):

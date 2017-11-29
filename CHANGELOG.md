@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## 0.3.3 [2017-11-29]
+### Added
+- Included the sqlite db file in setup.py, so it will be part of python wheel package
+
 ## 0.3.2 [2017-11-29]
 ### Removed
 - Removed annoying 'print' from planner.py

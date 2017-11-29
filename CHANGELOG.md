@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## 0.3.2 [2017-11-29]
+### Removed
+- Removed annoying 'print' from planner.py
+
 ## 0.3.1 [2017-11-29]
 ### Added
 - Added more required dependencies in the setup.py file. A fresh installation through pip will also install the required dependencies.

@@ -1,4 +1,3 @@
-=====================
 EmissionCalculatorLib
 =====================
 
@@ -36,6 +35,12 @@ Examples
 We have some examples (more to come) under the 'examples' directory. You can use them to view how a simple planning with some pre-defined emissions might look like.
 
 If you see some improvements, bugs or something, then please file a Github issue so we can continue to improve.
+
+
+Screencast(s)
+-------------
+
+To ease the learning curve a bit we've included a screecast to help you get started: https://asciinema.org/a/150349
 
 
 Routing Service

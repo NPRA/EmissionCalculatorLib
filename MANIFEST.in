@@ -1,0 +1,5 @@
+# example code
+recursive-include examples *
+
+# tests
+recursive-include tests *

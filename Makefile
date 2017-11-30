@@ -14,9 +14,10 @@ default:
 	@echo " uninstall:	uninstall develop build of this module (development)"
 
 
+all: test bdist
+
 test:
 	py.test tests
-
 
 # Install in develop mode
 # (require setuptools)

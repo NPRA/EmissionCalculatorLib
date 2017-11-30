@@ -43,7 +43,7 @@ Screencast(s)
 To ease the learning curve a bit we've included a screecast to help you get started:
 
 .. image:: https://asciinema.org/a/150349.png
-    :width: 30%
+    :width: 150px
     :target: https://asciinema.org/a/150349
 
 

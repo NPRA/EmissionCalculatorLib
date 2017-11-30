@@ -6,7 +6,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command
+from setuptools import setup, Command
 
 
 # Meta-data
@@ -89,7 +89,7 @@ setup(
     packages=['emission'],
     install_requires=REQUIRED,
     package_data={
-        'emission': ['*.json.gz'],
+        'emission': ['*.json.gz', 'database.db']
     },
     include_package_data=True,
     license='BSD',

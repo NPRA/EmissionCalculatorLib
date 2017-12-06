@@ -1,11 +1,14 @@
-=====================
 EmissionCalculatorLib
 =====================
 
 
 This python library uses formulas and factors from EU to calculate the emission(s) from personal cars, busses to trailers of various sizes give a start and stop point (see 'examples/simple_planner.py').
 
-You could also calculate the emission for a given vehicle
+You could also calculate the emission for a given vehicle.
+
+
+Pull requests are more than welcome! Please visit the `project on GitHub <https://github.com/NPRA/EmissionCalculatorLib>`_.
+Also checkout the `CHANGELOG.md <CHANGELOG.md>`_.
 
 
 Quickstart
@@ -32,6 +35,16 @@ Examples
 We have some examples (more to come) under the 'examples' directory. You can use them to view how a simple planning with some pre-defined emissions might look like.
 
 If you see some improvements, bugs or something, then please file a Github issue so we can continue to improve.
+
+
+Screencast(s)
+-------------
+
+To ease the learning curve a bit we've included a screecast to help you get started:
+
+.. image:: https://asciinema.org/a/150349.png
+    :scale: 50 %
+    :target: https://asciinema.org/a/150349
 
 
 Routing Service

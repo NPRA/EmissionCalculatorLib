@@ -6,7 +6,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command
+from setuptools import setup, Command
 
 
 # Meta-data
@@ -26,7 +26,9 @@ EMAIL = "asbjorn@fellinghaug.com"
 AUTHOR = """Juraj Cirbus <Juraj.Cirbus@norconsult.com>, Tomas Levin <tomas.levin@vegvesen.no>, Asbjørn Alexander Fellinghaug <asbjorn.fellinghaug@webstep.no>"""
 
 REQUIRED = [
-    'numpy'
+    'numpy',
+    'SQLAlchemy',
+    'six'
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -87,12 +89,12 @@ setup(
     packages=['emission'],
     install_requires=REQUIRED,
     package_data={
-        'emission': ['*.json.gz'],
+        'emission': ['*.json.gz', 'database.db']
     },
     include_package_data=True,
     license='BSD',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
@@ -102,6 +104,11 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'Topic :: Education',
+        'Topic :: Office/Business'
     ],
     # $ setup.py publish support
     cmdclass={

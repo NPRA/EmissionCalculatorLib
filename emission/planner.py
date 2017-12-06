@@ -307,10 +307,16 @@ class Planner:
         v_min = parameter.MINSPEED
         zita = parameter.ZITA
 
+
+
         """ ((alpha*speed^2) + (beta*speed) + gamma + (delta/speed))/((epsilon*speed^2) * (zita * speed + htz))"""
-        result = (alpha * math.pow(speed, 2)) + (beta * speed) + gamma + (delta / speed)
-        result /= (epsilon * math.pow(speed, 2)) + ((zita * speed) + hta)
-        result *= (1 - reduct_fact)
+        try:
+            result = (alpha * math.pow(speed, 2)) + (beta * speed) + gamma + (delta / speed)
+            result /= (epsilon * math.pow(speed, 2)) + ((zita * speed) + hta)
+            result *= (1 - reduct_fact)
+        except ZeroDivisionError:
+            result = 0.0
+
         return result
 
     def _calculate_emissions(self):

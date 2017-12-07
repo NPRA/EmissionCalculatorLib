@@ -12,7 +12,7 @@ from . import vehicles, log
 from . import EmissionsJsonParser
 from .exceptions import RouteError
 from . import models
-
+from six.moves import urllib
 
 def enum(**named_values):
     return type('Enum', (), named_values)
@@ -181,7 +181,8 @@ class Planner:
             url = Planner.build_url(self._vehicle, self.coordinates)
             log.debug("Calling: {}".format(url))
             log.debug("coordinates: {}".format(self.coordinates))
-            response = urlopen(url)
+            req = urllib.request.Request(url)
+            response = urllib.request.urlopen(req)
             data = response.read()
             self._json_data = json.loads(data.decode("utf-8"))
             if 'messages' in self._json_data:

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.3.6 [2017-12-07]
+### Changed
+- Bugfix in the urllib (emission/planner.py). When using the module from a QGIS plugin on Windows this (strangly?) failed. "urllib" complained about the transportation scheme 'https' being unknown. Refactored the code to construct a 'urllib.request.Request' instance and using that as argument to 'urllib.request.urlopen' seems to work perfectly on linux, mac and windows.
+
 ## 0.3.5 [2017-12-06]
 ### Changed
 - Fixed some wrong entries in the database that caused a QGis plugin to crash (RoadEmissionCalculator)

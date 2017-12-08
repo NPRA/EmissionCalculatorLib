@@ -2,3 +2,4 @@ build
 emission.egg-info
 *.pyc
 .cache
+.*.swp
